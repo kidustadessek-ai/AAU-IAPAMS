@@ -8,7 +8,7 @@ const EvaluationManagement = () => {
   const [evaluations, setEvaluations] = useState([
     {
       id: 1,
-      applicant: 'Dr. Alemayehu Bekele',
+      applicant: 'Kidus Tadesse',
       position: 'Associate Professor - Computer Science',
       evaluators: ['Prof. Ahmed Mohammed', 'Dr. Selamawit Tadesse'],
       criteria: [
