@@ -8,13 +8,13 @@ const ApplicationManagement = () => {
   const [applications, setApplications] = useState([
     {
       id: 1,
-      applicant: 'Dr. Alemayehu Bekele',
+      applicant: 'Kidus Tadesse',
       position: 'Associate Professor - Computer Science',
       department: 'Computing',
       appliedDate: '2026-04-25',
       status: 'Received',
       documents: 3,
-      email: 'alemu@aau.edu.et'
+      email: 'kidustadessek@gmail.com'
     },
     {
       id: 2,
