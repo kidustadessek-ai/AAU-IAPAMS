@@ -12,7 +12,7 @@ AAU-IAPMS (Addis Ababa University - Internal Position Appointment Management Sys
 ## Installation
 1. Clone the repository:
     ```bash
-    git clone https://github.com/kumsakites/AAU-IAPMS.git
+    git clone   https://github.com/kidustadessek-ai/AAU-IAPAMS.git
     ```
 2. Navigate to the project directory:
     ```bash
