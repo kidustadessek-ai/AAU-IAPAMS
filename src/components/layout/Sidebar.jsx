@@ -14,7 +14,7 @@ export const Sidebar = ({ navLinks }) => {
       borderRight: '1px solid rgba(255,255,255,0.04)',
     }}>
       {/* Section label */}
-      <Box sx={{ px: 3, pt: 3, pb: 1.5 }}>
+      <Box sx={{ px: 3, pt: 2.5, pb: 1 }}>
         <Typography variant="overline" sx={{
           fontSize: '0.6rem', letterSpacing: 2,
           color: 'rgba(255,255,255,0.25)', fontWeight: 600,

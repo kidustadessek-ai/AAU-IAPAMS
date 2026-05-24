@@ -115,12 +115,24 @@ export const DashboardLayout = ({
   return (
     <div className="min-h-screen flex" style={{ backgroundColor: '#f5f4f2' }}>
 
-      {/* Fixed Sidebar */}
-      <div className="fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-10 overflow-y-auto" style={{ backgroundColor: '#1a0a0b' }}>
+      {/* Fixed Sidebar — full height, dark, starts at top-0 since header doesn't overlap it */}
+      <div className="fixed top-0 left-0 h-full w-64 z-20 overflow-y-auto" style={{ backgroundColor: '#1a0a0b' }}>
+        {/* Sidebar brand strip */}
+        <div style={{
+          height: 56, display: 'flex', alignItems: 'center',
+          padding: '0 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
+          gap: 10, flexShrink: 0,
+        }}>
+          <img src="/aau.png" alt="AAU" style={{ width: 30, height: 30, objectFit: 'contain' }} />
+          <div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#fff', lineHeight: 1.2 }}>AAU</div>
+            <div style={{ fontSize: '0.58rem', color: 'rgba(255,255,255,0.35)', lineHeight: 1, letterSpacing: 1 }}>IAPAMS</div>
+          </div>
+        </div>
         <Sidebar navLinks={navLinks} />
       </div>
 
-      {/* Main content area */}
+      {/* Main content — offset by sidebar, header starts at left:256px */}
       <div className="flex-1 flex flex-col ml-64">
         <Header
           title={title}
@@ -141,17 +153,17 @@ export const DashboardLayout = ({
           isLoading={isLoadingProfile}
         />
 
-        {/* Main content */}
-        <main className="flex-1 p-5 sm:p-7 mt-16" style={{ backgroundColor: '#f5f4f2' }}>
+        {/* mt-14 clears the 56px header */}
+        <main className="flex-1 p-5 sm:p-6 mt-14" style={{ backgroundColor: '#f5f4f2' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-              className="bg-white rounded-xl p-5 sm:p-7 min-h-full"
-              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #f0eded' }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.18 }}
+              className="bg-white rounded-xl p-5 sm:p-6 min-h-full"
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #f0eded' }}
             >
               {children}
             </motion.div>
