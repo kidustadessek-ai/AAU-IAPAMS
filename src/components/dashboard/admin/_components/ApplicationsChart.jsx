@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement, PointElement,
   LineElement, ArcElement, Title, Tooltip, Legend, Filler,
 } from 'chart.js';
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
-import { getUserStats } from '../../../../services/applicationService';
-import { useAuth } from '../../../../context/authContext';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, PointElement,
@@ -15,20 +13,7 @@ ChartJS.register(
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-const ApplicationsChart = () => {
-  const { auth } = useAuth();
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetch = async () => {
-      const res = await getUserStats();
-      if (res.success && res.data?.data) setStats(res.data.data);
-      setLoading(false);
-    };
-    if (auth?.tokens?.accessToken) fetch();
-  }, [auth]);
-
+const ApplicationsChart = ({ stats, loading }) => {
   if (loading) {
     return (
       <div className="bg-white p-4 rounded-lg shadow animate-pulse h-64 flex items-center justify-center text-gray-400 text-sm">
