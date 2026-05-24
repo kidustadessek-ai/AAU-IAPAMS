@@ -265,10 +265,8 @@ const PositionManagement = () => {
             onClick={() => setOpenModal(true)}
             sx={{
               mr: 2,
-              bgcolor: 'green',
-              opacity: '0.8',
-              '&:hover': { bgcolor: 'primary.dark' }
-
+              bgcolor: '#7B1113',
+              '&:hover': { bgcolor: '#5a0d0f' }
             }}
           >
             Post New Job
@@ -278,10 +276,9 @@ const PositionManagement = () => {
             startIcon={viewMode === 'grid' ? <ViewListIcon /> : <ViewModuleIcon />}
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
             sx={{
-              borderColor: 'primary.main',
-              color: 'green',
-              opacity: '0.8',
-              '&:hover': { borderColor: 'primary.dark' }
+              borderColor: '#7B1113',
+              color: '#7B1113',
+              '&:hover': { borderColor: '#5a0d0f', bgcolor: '#fdf8f8' }
             }}
           >
             {viewMode === 'grid' ? 'List View' : 'Grid View'}
@@ -726,7 +723,7 @@ const PositionManagement = () => {
         PaperProps={{ sx: { borderRadius: 2, overflow: 'hidden' } }}
       >
         {/* Header */}
-        <Box sx={{ bgcolor: '#1b5e20', px: 3, py: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ bgcolor: '#7B1113', px: 3, py: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 0.3 }}>
               Post New Position
@@ -745,7 +742,7 @@ const PositionManagement = () => {
 
             {/* Section: Basic Info */}
             <Box sx={{ mb: 3 }}>
-              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+              <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
                 Basic Information
               </Typography>
               <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
@@ -789,7 +786,7 @@ const PositionManagement = () => {
 
             {/* Section: Location */}
             <Box sx={{ mb: 3 }}>
-              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+              <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
                 College & Department
               </Typography>
               <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
@@ -815,7 +812,7 @@ const PositionManagement = () => {
 
             {/* Section: Requirements & Deadline */}
             <Box sx={{ mb: 3 }}>
-              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+              <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
                 Requirements & Deadline
               </Typography>
               <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
@@ -851,7 +848,7 @@ const PositionManagement = () => {
 
             {/* Section: Evaluators */}
             <Box>
-              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+              <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
                 Assign Evaluators
               </Typography>
               <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
@@ -867,7 +864,7 @@ const PositionManagement = () => {
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                       {selected.map((id) => {
                         const ev = evaluators.find(e => e._id === id);
-                        return <Chip key={id} label={ev ? ev.fullName : id} size="small" sx={{ bgcolor: '#e8f5e9', color: '#1b5e20' }} />;
+                        return <Chip key={id} label={ev ? ev.fullName : id} size="small" sx={{ bgcolor: '#fdf0f0', color: '#7B1113' }} />;
                       })}
                     </Box>
                   )}
@@ -903,7 +900,7 @@ const PositionManagement = () => {
             variant="contained"
             onClick={() => handleSubmit('published')}
             disabled={isLoading}
-            sx={{ bgcolor: '#1b5e20', '&:hover': { bgcolor: '#145214' }, minWidth: 140 }}
+            sx={{ bgcolor: '#7B1113', '&:hover': { bgcolor: '#5a0d0f' }, minWidth: 140 }}
           >
             {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Publish Position'}
           </Button>

@@ -148,7 +148,7 @@ const EvaluationManagement = () => {
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                       ${evalu.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
                         evalu.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'}`}>
+                        'bg-red-100 text-aau-primary'}`}>
                       {evalu.status === 'Pending' ? <Pending className="mr-1" fontSize="small" /> :
                        evalu.status === 'In Progress' ? <Grading className="mr-1" fontSize="small" /> :
                        <DoneAll className="mr-1" fontSize="small" />}
@@ -159,7 +159,7 @@ const EvaluationManagement = () => {
                     <div className="flex items-center">
                       <Score className="mr-1 text-gray-600" />
                       <span className={`font-medium ${
-                        evalu.overallScore >= 90 ? 'text-green-600' :
+                        evalu.overallScore >= 90 ? 'text-aau-primary' :
                         evalu.overallScore >= 75 ? 'text-blue-600' :
                         'text-yellow-600'
                       }`}>

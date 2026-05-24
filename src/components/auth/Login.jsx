@@ -21,15 +21,8 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-const defaultTheme = createTheme({
-  palette: {
-    primary: {
-      main: '#2e7d32', // Green color
-    },
-  },
-});
+import { ThemeProvider } from '@mui/material/styles';
+import { aauTheme } from '../../theme';
 
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState('');
@@ -70,7 +63,7 @@ const Login = () => {
   };
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <ThemeProvider theme={aauTheme}>
       <Container component="main" maxWidth="xs">
         <CssBaseline />
         <Box
@@ -86,7 +79,7 @@ const Login = () => {
               AAU-IAPAMS
             </Typography>
             <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-              Addis Ababa University — Internal Academic Position Appointment Management System
+              Addis Ababa University - Internal Academic Position Appointment Management System
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>

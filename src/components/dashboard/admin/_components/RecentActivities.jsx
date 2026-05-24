@@ -45,7 +45,7 @@ const RecentActivities = () => {
           {activities.map((activity) => (
             <li key={activity.id} className="border-b pb-4 last:border-b-0 last:pb-0">
               <div className="flex items-start">
-                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-medium">
+                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-red-100 flex items-center justify-center text-aau-primary font-medium">
                   {activity.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="ml-3">

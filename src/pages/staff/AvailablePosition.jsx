@@ -179,7 +179,7 @@ const AvailablePositions = () => {
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" color="green">
+        <Typography variant="h4" component="h1" fontWeight="bold" sx={{ color: '#7B1113' }}>
           Available Positions
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
@@ -370,9 +370,8 @@ const AvailablePositions = () => {
                       }}
                       sx={{
                         ml: 'auto',
-                        bgcolor: 'green',
-                        opacity: 0.9,
-                        '&:hover': { bgcolor: 'green', opacity: 1 },
+                      bgcolor: '#7B1113',
+                        '&:hover': { bgcolor: '#5a0d0f' },
                       }}
                     >
                       Apply Now

@@ -28,25 +28,11 @@ export const Header = ({
       animate={{ y: 0, opacity: 1 }}
       className='w-full'
     >
-      <AppBar position="fixed" sx={{ backgroundColor: 'green', color: '#fff' }} elevation={4}>
-        <Toolbar  sx={{ width: '100%', px: 2 }}>
+      <AppBar position="fixed" sx={{ backgroundColor: '#7B1113', color: '#fff' }} elevation={2}>
+        <Toolbar sx={{ width: '100%', px: 2 }}>
           <Box display="flex" alignItems="center" flexGrow={1}>
-            <Typography
-              variant="h6"
-              sx={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}
-            >
-              <Box
-                sx={{
-                  backgroundColor: '#fff',
-                  color: 'green',
-                  borderRadius: '50%',
-                  p: 0.5,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: 1,
-                }}
-              >
+            <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>
+              <Box sx={{ backgroundColor: '#fff', color: '#7B1113', borderRadius: '50%', p: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'center', mr: 1 }}>
                 <FiUser />
               </Box>
               {title}
@@ -72,11 +58,7 @@ export const Header = ({
           )}
 
           <IconButton onClick={handleMenu} color="inherit">
-            <Avatar
-              src={user?.profilePhoto}
-              alt="Profile"
-              sx={{ width: 36, height: 36, bgcolor: 'green.500' }}
-            >
+            <Avatar src={user?.profilePhoto} alt="Profile" sx={{ width: 36, height: 36, bgcolor: '#5a0d0f' }}>
               {!profilePhoto && <FiUser />}
             </Avatar>
             <Typography sx={{ ml: 1, display: { xs: 'none', md: 'block' } }}>

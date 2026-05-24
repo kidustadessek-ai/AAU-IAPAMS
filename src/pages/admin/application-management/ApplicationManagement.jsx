@@ -177,7 +177,7 @@ const ApplicationManagement = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-aau-primary">
                       {app.department}
                     </span>
                   </td>
@@ -191,7 +191,7 @@ const ApplicationManagement = () => {
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                       ${app.status === 'Received' ? 'bg-blue-100 text-blue-800' : 
                         app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
-                        app.status === 'Shortlisted' ? 'bg-green-100 text-green-800' :
+                        app.status === 'Shortlisted' ? 'bg-red-100 text-aau-primary' :
                         'bg-red-100 text-red-800'}`}>
                       {app.status}
                     </span>

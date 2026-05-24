@@ -17,7 +17,7 @@ const AuthFormLayout = ({ title, subtitle, children, backLink }) => {
         {backLink && (
           <Link
             to={backLink}
-            className="flex items-center text-sm text-green-600 hover:text-green-500 mb-4"
+            className="flex items-center text-sm text-aau-primary hover:text-aau-dark mb-4"
           >
             <FiArrowLeft className="mr-1" /> Back
           </Link>

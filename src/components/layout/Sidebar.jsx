@@ -19,9 +19,9 @@ export const Sidebar = ({ navLinks }) => {
           >
             <Link
               to={link.path}
-              className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-green-50 hover:text-green-600 transition-colors"
+              className="flex items-center p-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-aau-primary transition-colors"
             >
-              <span className="mr-3 text-green-500">{link.icon}</span>
+              <span className="mr-3 text-aau-primary">{link.icon}</span>
               {link.name}
             </Link>
           </motion.div>
