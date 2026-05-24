@@ -1,31 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { CheckBadgeIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { useAuth } from '../../../../context/authContext';
-import { getPositions } from '../../../../services/positionService';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getPositions } from '../../../../services/positionService';
+
+const STATUS_STYLE = {
+  open:   { label: 'Open',   bg: '#f0fdf4', color: '#15803d' },
+  closed: { label: 'Closed', bg: '#fef2f2', color: '#dc2626' },
+  filled: { label: 'Filled', bg: '#eff6ff', color: '#1e40af' },
+};
+
+const SkeletonRow = () => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #f8f5f5' }}>
+    <div style={{ flex: 1 }}>
+      <div style={{ height: 11, width: '55%', background: '#f1f5f9', borderRadius: 4, marginBottom: 5 }} />
+      <div style={{ height: 9, width: '35%', background: '#f8f7f5', borderRadius: 4 }} />
+    </div>
+    <div style={{ height: 20, width: 52, background: '#f1f5f9', borderRadius: 4 }} />
+    <div style={{ height: 9, width: 40, background: '#f8f7f5', borderRadius: 4 }} />
+  </div>
+);
 
 const RecentJobPosts = () => {
-  const { auth } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRecentJobs = async () => {
+    const fetch = async () => {
       try {
-        const res = await getPositions({ limit: 5, sortBy: 'createdAt', order: 'desc' }, auth?.tokens?.accessToken);
+        const res = await getPositions({ limit: 6, sortBy: 'createdAt', order: 'desc' });
         if (res.success) {
-          const mapped = (res.data || []).map((pos) => ({
+          setJobs((res.data || []).map(pos => ({
             id: pos._id,
             title: pos.title,
+            college: pos.college,
+            department: pos.department,
             type: pos.positionType,
-            location: pos.department,
-            posted: new Date(pos.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            status: pos.status === 'open' ? 'Active' : pos.status === 'closed' ? 'Closed' : 'Filled',
-            applicants: 0, // You can add application count if available
+            status: pos.status,
+            deadline: new Date(pos.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
             evaluators: pos.evaluators?.length || 0,
-          }));
-          setJobs(mapped);
+          })));
         }
       } catch {
         setJobs([]);
@@ -33,66 +46,95 @@ const RecentJobPosts = () => {
         setLoading(false);
       }
     };
-    if (auth?.tokens?.accessToken) fetchRecentJobs();
-  }, [auth]);
+    fetch();
+  }, []);
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">Recent Job Posts</h2>
-        <button 
+    <div style={{
+      background: '#fff', borderRadius: 12,
+      border: '1px solid #f0eded', padding: '20px 22px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ width: 3, height: 16, background: '#7B1113', borderRadius: 4 }} />
+          <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1a1a2e' }}>Recent Positions</span>
+        </div>
+        <button
           onClick={() => navigate('/admin/positions')}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          style={{
+            fontSize: '0.75rem', fontWeight: 600, color: '#7B1113',
+            background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+          }}
         >
-          View All Jobs
+          View all →
         </button>
       </div>
+
+      {/* Column headers */}
+      <div style={{
+        display: 'grid', gridTemplateColumns: '1fr 160px 90px 80px 70px',
+        padding: '0 0 8px', borderBottom: '1px solid #f0eded',
+        fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8',
+        textTransform: 'uppercase', letterSpacing: '0.07em',
+      }}>
+        <span>Position</span>
+        <span>Department</span>
+        <span>Type</span>
+        <span>Deadline</span>
+        <span style={{ textAlign: 'right' }}>Status</span>
+      </div>
+
+      {/* Rows */}
       {loading ? (
-        <p className="text-sm text-gray-400">Loading…</p>
+        <div>{[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}</div>
       ) : jobs.length === 0 ? (
-        <p className="text-sm text-gray-400">No positions posted yet.</p>
+        <div style={{ textAlign: 'center', padding: '32px 0', color: '#94a3b8', fontSize: '0.8rem' }}>
+          No positions posted yet
+        </div>
       ) : (
-        <div className="space-y-4">
-          {jobs.map((job) => (
-            <div key={job.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-              <div className="flex justify-between">
+        <div>
+          {jobs.map((job, i) => {
+            const s = STATUS_STYLE[job.status] || { label: job.status, bg: '#f1f5f9', color: '#475569' };
+            return (
+              <div
+                key={job.id}
+                onClick={() => navigate('/admin/positions')}
+                style={{
+                  display: 'grid', gridTemplateColumns: '1fr 160px 90px 80px 70px',
+                  alignItems: 'center', padding: '11px 0',
+                  borderBottom: i < jobs.length - 1 ? '1px solid #f8f5f5' : 'none',
+                  cursor: 'pointer',
+                  transition: 'background 0.1s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#fdf9f9'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
                 <div>
-                  <h3 className="font-medium text-gray-900">{job.title}</h3>
-                  <p className="text-sm text-gray-500">
-                    {job.type} • {job.location} • Posted {job.posted}
+                  <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 600, color: '#1a1a2e', lineHeight: 1.3 }}>
+                    {job.title}
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.68rem', color: '#94a3b8' }}>
+                    {job.college?.split(' ').slice(0, 3).join(' ')}
                   </p>
                 </div>
-                <div className="flex items-center">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    job.status === 'Active' ? 'bg-red-100 text-aau-primary' :
-                    job.status === 'Closed' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
-                    {job.status}
+                <span style={{ fontSize: '0.72rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>
+                  {job.department?.length > 22 ? job.department.substring(0, 22) + '…' : job.department}
+                </span>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{job.type}</span>
+                <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{job.deadline}</span>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{
+                    fontSize: '0.62rem', fontWeight: 600, padding: '2px 8px',
+                    borderRadius: 4, background: s.bg, color: s.color,
+                  }}>
+                    {s.label}
                   </span>
                 </div>
               </div>
-              <div className="mt-3 flex justify-between items-center">
-                <div className="flex space-x-4">
-                  <span className="text-sm text-gray-500">
-                    <span className="font-medium text-gray-900">{job.applicants}</span> Applicants
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    <span className="font-medium text-gray-900">{job.evaluators}</span> Evaluators
-                  </span>
-                </div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => navigate('/admin/positions')}
-                    className="p-1 text-gray-500 hover:text-gray-700"
-                    title="View Details"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

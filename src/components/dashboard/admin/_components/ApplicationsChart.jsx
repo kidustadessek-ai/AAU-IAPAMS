@@ -1,132 +1,190 @@
-import React from 'react';
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, BarElement, PointElement,
   LineElement, ArcElement, Title, Tooltip, Legend, Filler,
 } from 'chart.js';
-import { Line, Doughnut, Bar } from 'react-chartjs-2';
+import { Line, Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, PointElement,
   LineElement, ArcElement, Title, Tooltip, Legend, Filler
 );
 
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+const STATUS_CONFIG = [
+  { key: 'pending',     label: 'Pending',      color: '#C9A84C' },
+  { key: 'underReview', label: 'Under Review',  color: '#3b82f6' },
+  { key: 'shortlisted', label: 'Shortlisted',   color: '#7B1113' },
+  { key: 'accepted',    label: 'Accepted',      color: '#15803d' },
+  { key: 'rejected',    label: 'Rejected',      color: '#e5e7eb' },
+];
+
+const SectionTitle = ({ children, action }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ width: 3, height: 16, background: '#7B1113', borderRadius: 4 }} />
+      <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#1a1a2e' }}>{children}</span>
+    </div>
+    {action}
+  </div>
+);
+
+const ChartSkeleton = ({ height = 200 }) => (
+  <div style={{
+    height, borderRadius: 8,
+    background: 'linear-gradient(90deg, #f8f7f5 25%, #f1eeee 50%, #f8f7f5 75%)',
+    backgroundSize: '200% 100%',
+    animation: 'shimmer 1.4s infinite',
+  }} />
+);
 
 const ApplicationsChart = ({ stats, loading }) => {
-  if (loading) {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow animate-pulse h-64 flex items-center justify-center text-gray-400 text-sm">
-        Loading analytics...
-      </div>
-    );
-  }
+  const overTime = stats?.applications?.overTime || [];
+  const appStats = stats?.applications || {};
 
-  if (!stats) {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow h-64 flex items-center justify-center text-gray-400 text-sm">
-        No data available
-      </div>
-    );
-  }
-
-  // --- Applications Over Time (Line Chart) ---
-  const overTime = stats.applications?.overTime || [];
-  const timeLabels = overTime.map(d => `${MONTH_NAMES[d._id.month - 1]} ${d._id.year}`);
-  const timeCounts = overTime.map(d => d.count);
+  // Line chart data
+  const lineLabels = overTime.map(d => `${MONTHS[d._id.month - 1]} '${String(d._id.year).slice(2)}`);
+  const lineCounts = overTime.map(d => d.count);
 
   const lineData = {
-    labels: timeLabels.length ? timeLabels : ['No data'],
+    labels: lineLabels.length ? lineLabels : ['No data'],
     datasets: [{
-      label: 'Applications',
-      data: timeCounts.length ? timeCounts : [0],
+      data: lineCounts.length ? lineCounts : [0],
       borderColor: '#7B1113',
-      backgroundColor: 'rgba(123,17,19,0.1)',
+      backgroundColor: (ctx) => {
+        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(123,17,19,0.15)');
+        gradient.addColorStop(1, 'rgba(123,17,19,0)');
+        return gradient;
+      },
       fill: true,
-      tension: 0.4,
+      tension: 0.45,
       pointBackgroundColor: '#7B1113',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
       pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2,
     }],
   };
 
   const lineOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Applications Over Last 6 Months', font: { size: 13 } },
+      tooltip: {
+        backgroundColor: '#1a1a2e',
+        titleColor: '#fff',
+        bodyColor: 'rgba(255,255,255,0.7)',
+        padding: 10,
+        cornerRadius: 8,
+        callbacks: {
+          title: (items) => items[0].label,
+          label: (item) => ` ${item.raw} applications`,
+        },
+      },
     },
-    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { color: '#94a3b8', font: { size: 11 } },
+      },
+      y: {
+        beginAtZero: true,
+        grid: { color: '#f5f2f2', drawBorder: false },
+        border: { display: false, dash: [4, 4] },
+        ticks: { color: '#94a3b8', font: { size: 11 }, precision: 0 },
+      },
+    },
   };
 
-  // --- Application Status Breakdown (Doughnut) ---
-  const appStats = stats.applications || {};
-  const statusLabels = ['Pending', 'Under Review', 'Shortlisted', 'Accepted', 'Rejected'];
-  const statusData = [
-    appStats.pending || 0,
-    appStats.underReview || 0,
-    appStats.shortlisted || 0,
-    appStats.accepted || 0,
-    appStats.rejected || 0,
-  ];
+  // Doughnut data
+  const doughnutValues = STATUS_CONFIG.map(s => appStats[s.key] || 0);
+  const total = doughnutValues.reduce((a, b) => a + b, 0);
 
   const doughnutData = {
-    labels: statusLabels,
+    labels: STATUS_CONFIG.map(s => s.label),
     datasets: [{
-      data: statusData,
-      backgroundColor: ['#C9A84C', '#3b82f6', '#7B1113', '#16a34a', '#ef4444'],
-      borderWidth: 2,
+      data: doughnutValues,
+      backgroundColor: STATUS_CONFIG.map(s => s.color),
+      borderWidth: 3,
       borderColor: '#fff',
+      hoverBorderWidth: 3,
     }],
   };
 
   const doughnutOptions = {
     responsive: true,
-    plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
-      title: { display: true, text: 'Application Status Breakdown', font: { size: 13 } },
-    },
-  };
-
-  // --- Top Departments (Horizontal Bar) ---
-  const byDept = (stats.applications?.byDepartment || []).slice(0, 6);
-  const deptLabels = byDept.map(d => d._id?.length > 30 ? d._id.substring(0, 30) + '…' : (d._id || 'Unknown'));
-  const deptCounts = byDept.map(d => d.count);
-
-  const barData = {
-    labels: deptLabels.length ? deptLabels : ['No data'],
-    datasets: [{
-      label: 'Applications',
-      data: deptCounts.length ? deptCounts : [0],
-      backgroundColor: 'rgba(123,17,19,0.75)',
-      borderRadius: 4,
-    }],
-  };
-
-  const barOptions = {
-    indexAxis: 'y',
-    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '72%',
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Top Departments by Applications', font: { size: 13 } },
+      tooltip: {
+        backgroundColor: '#1a1a2e',
+        titleColor: '#fff',
+        bodyColor: 'rgba(255,255,255,0.7)',
+        padding: 10,
+        cornerRadius: 8,
+      },
     },
-    scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
   };
 
   return (
-    <div className="space-y-4">
-      {/* Line Chart */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <Line data={lineData} options={lineOptions} />
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: 16 }}>
+
+      {/* Line chart */}
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #f0eded', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <SectionTitle
+          action={
+            <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 500 }}>Last 6 months</span>
+          }
+        >
+          Application Trend
+        </SectionTitle>
+        {loading ? <ChartSkeleton height={180} /> : (
+          <div style={{ height: 180 }}>
+            <Line data={lineData} options={lineOptions} />
+          </div>
+        )}
       </div>
 
-      {/* Doughnut + Bar side by side */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
-          <Doughnut data={doughnutData} options={doughnutOptions} />
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
-          <Bar data={barData} options={barOptions} />
-        </div>
+      {/* Doughnut */}
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #f0eded', padding: '20px 22px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+        <SectionTitle>Status Breakdown</SectionTitle>
+        {loading ? <ChartSkeleton height={140} /> : (
+          <>
+            <div style={{ height: 140, position: 'relative' }}>
+              <Doughnut data={doughnutData} options={doughnutOptions} />
+              {/* Center label */}
+              <div style={{
+                position: 'absolute', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center', pointerEvents: 'none',
+              }}>
+                <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1a1a2e', lineHeight: 1 }}>{total}</div>
+                <div style={{ fontSize: '0.6rem', color: '#94a3b8', fontWeight: 500, marginTop: 2 }}>Total</div>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {STATUS_CONFIG.map((s, i) => (
+                <div key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: 2, background: s.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{s.label}</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1a1a2e' }}>
+                    {doughnutValues[i]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
