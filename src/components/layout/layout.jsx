@@ -114,14 +114,15 @@ export const DashboardLayout = ({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Fixed Sidebar */}
-      <div className="fixed top-0 left-0 h-full w-64 bg-white shadow-lg z-10">
+
+      {/* Fixed Sidebar — starts below the 64px AppBar */}
+      <div className="fixed top-16 left-0 h-[calc(100vh-64px)] w-64 bg-white shadow-lg z-10 overflow-y-auto">
         <Sidebar navLinks={navLinks} />
       </div>
 
-      {/* Main content area */}
+      {/* Main content area — offset by sidebar width */}
       <div className="flex-1 flex flex-col ml-64">
-        <Header 
+        <Header
           title={title}
           user={user}
           profilePhoto={profilePhoto}
@@ -140,8 +141,8 @@ export const DashboardLayout = ({
           isLoading={isLoadingProfile}
         />
 
-        {/* Main content container */}
-        <main className="flex-1 p-4 sm:p-6 mt-8">
+        {/* Main content — mt-16 clears the fixed 64px AppBar */}
+        <main className="flex-1 p-4 sm:p-6 mt-16">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -149,7 +150,7 @@ export const DashboardLayout = ({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="bg-white shadow-md rounded-lg p-4 sm:p-6 h-full"
+              className="bg-white shadow-md rounded-lg p-4 sm:p-6 min-h-full"
             >
               {children}
             </motion.div>

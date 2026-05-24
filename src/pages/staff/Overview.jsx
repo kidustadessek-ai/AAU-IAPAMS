@@ -172,15 +172,14 @@ const StaffHome = () => {
     setIsLoading(true);
     try {
       const [userRes, appsRes, positionsRes] = await Promise.all([
-        getUserProfile(auth.tokens.accessToken),
-        getMyApplications(auth.tokens.accessToken),
-        getPositions(auth.tokens.accessToken)
+        getUserProfile(),
+        getMyApplications(),
+        getPositions()
       ]);
       if (userRes.success) setUser(userRes.data.data);
-      if (appsRes.success) setApplications(appsRes.data.data);
-      if (positionsRes.success) setPositions(positionsRes.data);
+      if (appsRes.success) setApplications(Array.isArray(appsRes.data.data) ? appsRes.data.data : []);
+      if (positionsRes.success) setPositions(positionsRes.data || []);
     } catch (error) {
-      console.error('Error loading data', error);
       toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
@@ -204,13 +203,10 @@ const StaffHome = () => {
     };
   }
 
-  // Inside your component, after fetching positions & applications:
-  // console.log('Applications:', applications); // Check the applications data
-const appliedPositionIds = applications.map(app => app.position._id); // Adjust field name if needed
-console.log('Applied position IDs:', appliedPositionIds); // Check the IDs
-const newPositions = positions.filter(pos => !appliedPositionIds.includes(pos._id));
-
-// console.log('Newly posted positions:', newPositions);
+  const appliedPositionIds = applications.map(app =>
+    typeof app.position === 'object' ? app.position?._id : app.position
+  ).filter(Boolean);
+  const newPositions = positions.filter(pos => !appliedPositionIds.includes(pos._id));
   function getStatusColor(status) {
     switch (status) {
       case 'applied': return 'bg-blue-500';

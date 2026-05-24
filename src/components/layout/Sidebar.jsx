@@ -8,7 +8,7 @@ export const Sidebar = ({ navLinks }) => {
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       transition={{ delay: 0.2 }}
-      className="w-64 bg-white shadow-md h-[calc(100vh-64px)] sticky top-16"
+      className="w-64 bg-white h-full"
     >
       <nav className="p-4 space-y-1">
         {navLinks.map((link) => (
