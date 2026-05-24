@@ -1,45 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
-  Button,
-  Container,
-  Typography,
-  Paper,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  IconButton,
-  CircularProgress,
-  Divider,
-  Avatar,
-  Badge,
-  Alert,
-  Tabs,
-  Tab,
-  MenuItem,
-  Link
+  Box, Button, Container, Typography, Paper, Grid, Card, CardContent,
+  CardActions, Chip, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, IconButton, CircularProgress, Divider, Alert, Tabs, Tab,
+  Link, Autocomplete,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  CalendarToday as CalendarTodayIcon,
-  Close as CloseIcon,
-  Description as DescriptionIcon,
-  HowToReg as AppliedIcon,
-  EventBusy as ClosedIcon,
-  FilterList as FilterListIcon
+  Search as SearchIcon, CalendarToday as CalendarTodayIcon,
+  Close as CloseIcon, Description as DescriptionIcon,
+  HowToReg as AppliedIcon, EventBusy as ClosedIcon, FilterList as FilterListIcon,
+  CloudUpload as UploadIcon, CheckCircle as CheckIcon,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import { getPositions } from '../../services/positionService';
 import { useAuth } from '../../context/authContext';
 import { getMyApplications, applyToPosition } from '../../services/applicationService';
-import { getColleges, findCollegeByDepartment } from '../../data/aauStructure';
+import { getColleges } from '../../data/aauStructure';
 
 const AvailablePositions = () => {
   const { auth } = useAuth();
@@ -49,137 +25,142 @@ const AvailablePositions = () => {
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState('all');
+  const [collegeFilter, setCollegeFilter] = useState(null);
   const [tabValue, setTabValue] = useState('all');
-  const [files, setFiles] = useState({
-    cv: null,
-    coverLetter: null,
-    certificates: []
-  });
+  const [files, setFiles] = useState({ cv: null, coverLetter: null, certificates: [] });
 
   const colleges = getColleges();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const [positionsRes, applicationsRes] = await Promise.all([
-        getPositions({ status: 'open' }, auth.tokens.accessToken).catch(err => {
-          console.error('Positions fetch error:', err);
-          return { success: false, data: [] };
-        }),
-        getMyApplications(auth.tokens.accessToken).catch(err => {
-          console.error('Applications fetch error:', err);
-          return { success: false, data: [] };
-        })
+        getPositions({ status: 'open' }),
+        getMyApplications(),
       ]);
-
-      if (positionsRes.success) {
-        // console.log('Positions response:', positionsRes);
-        setPositions([...positionsRes.data]);
-      } else {
-        console.error('Positions fetch failed:', positionsRes);
-      }
-
+      if (positionsRes.success) setPositions(positionsRes.data || []);
       if (applicationsRes.success) {
-        // console.log('Applications response:', applicationsRes);
-        const apps = Array.isArray(applicationsRes.data.data) ? [...applicationsRes.data.data] : [];
-        // console.log('Applications to set:', apps);
-        setApplications(apps);
+        setApplications(Array.isArray(applicationsRes.data.data) ? applicationsRes.data.data : []);
       } else {
-        console.error('Applications fetch failed:', applicationsRes);
         setApplications([]);
       }
-
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Fetch error:', error);
+    } catch {
       toast.error('Failed to load data');
+    } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    // console.log('Filtering with:', { positions, applications, searchTerm, departmentFilter, tabValue });
-    let result = positions;
+    let result = [...positions];
     if (searchTerm) {
       result = result.filter(p =>
         p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchTerm.toLowerCase())
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    if (departmentFilter !== 'all') {
-      // Filter by college (departmentFilter now contains college name)
-      result = result.filter(p => p.college === departmentFilter);
+    if (collegeFilter) {
+      result = result.filter(p => p.college === collegeFilter);
     }
     if (tabValue === 'applied') {
-      const appliedPositionIds = applications.map(a => a.position._id);
-      result = result.filter(p => appliedPositionIds.includes(p._id));
+      const ids = applications.map(a =>
+        typeof a.position === 'object' ? a.position?._id : a.position
+      ).filter(Boolean);
+      result = result.filter(p => ids.includes(p._id));
     } else if (tabValue === 'eligible') {
-      const appliedPositionIds = applications.map(a => a.position._id);
-      result = result.filter(p => !appliedPositionIds.includes(p._id));
+      const ids = applications.map(a =>
+        typeof a.position === 'object' ? a.position?._id : a.position
+      ).filter(Boolean);
+      result = result.filter(p => !ids.includes(p._id));
     }
-    // console.log('Filtered positions:', result);
     setFilteredPositions(result);
-  }, [positions, applications, searchTerm, departmentFilter, tabValue]);
+  }, [positions, applications, searchTerm, collegeFilter, tabValue]);
 
   const handleApply = async (positionId) => {
-    if (!files.cv) {
-      toast.error('CV is required');
-      return;
-    }
-    setIsLoading(true);
+    if (!files.cv) { toast.error('CV is required'); return; }
+    setIsSubmitting(true);
     try {
       const formData = new FormData();
-      formData.append('position', positionId);
+      formData.append('positionId', positionId);
       formData.append('cv', files.cv);
       if (files.coverLetter) formData.append('coverLetter', files.coverLetter);
-      files.certificates.forEach(cert => {
-        formData.append('certificates', cert);
-      });
-      // console.log('Form Data prepared:', { positionId, cv: files.cv?.name, coverLetter: files.coverLetter?.name, certificates: files.certificates.map(c => c.name) });
-  
-      const res = await applyToPosition(formData, auth.tokens.accessToken);
-      // console.log('Apply response:', res);
+      files.certificates.forEach(cert => formData.append('certificates', cert));
+
+      const res = await applyToPosition(formData);
       if (res.success) {
         toast.success('Application submitted successfully!');
         setOpenDialog(false);
         setFiles({ cv: null, coverLetter: null, certificates: [] });
         fetchData();
       }
+      // error toast is shown inside applyToPosition
     } catch (error) {
-      console.error('handleApply error:', error);
-      toast.error(error.response?.data?.message || 'Failed to submit application');
+      toast.error(error.message || 'Failed to submit application');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
   const getApplicationStatus = (positionId) => {
     if (!Array.isArray(applications)) return null;
-    const application = applications.find(a => a.position?._id === positionId);
-    if (!application) return null;
-    switch (application.status) {
-      case 'pending': return { text: 'Applied', color: 'warning' };
-      case 'under_review': return { text: 'Under Review', color: 'info' };
-      case 'shortlisted': return { text: 'Shortlisted', color: 'success' };
-      case 'rejected': return { text: 'Not Selected', color: 'error' };
-      default: return { text: 'Applied', color: 'warning' };
-    }
+    const app = applications.find(a => {
+      const id = typeof a.position === 'object' ? a.position?._id : a.position;
+      return id === positionId;
+    });
+    if (!app) return null;
+    const map = {
+      pending: { text: 'Applied', color: 'warning' },
+      under_review: { text: 'Under Review', color: 'info' },
+      shortlisted: { text: 'Shortlisted', color: 'success' },
+      rejected: { text: 'Not Selected', color: 'error' },
+      accepted: { text: 'Accepted', color: 'success' },
+    };
+    return map[app.status] || { text: 'Applied', color: 'warning' };
   };
 
   const getApplicationDetails = (positionId) => {
     if (!Array.isArray(applications)) return null;
-    return applications.find(a => a.position?._id === positionId) || null;
+    return applications.find(a => {
+      const id = typeof a.position === 'object' ? a.position?._id : a.position;
+      return id === positionId;
+    }) || null;
   };
+
+  const FileUploadBox = ({ id, label, accept, value, onChange, multiple = false }) => (
+    <Box sx={{
+      border: '2px dashed', borderColor: value ? '#7B1113' : '#cbd5e1',
+      borderRadius: 2, p: 2, textAlign: 'center', bgcolor: value ? '#fdf8f8' : '#f8fafc',
+      cursor: 'pointer', transition: 'all 0.2s',
+      '&:hover': { borderColor: '#7B1113', bgcolor: '#fdf8f8' }
+    }}>
+      <input accept={accept} style={{ display: 'none' }} id={id} type="file"
+        multiple={multiple} onChange={onChange} />
+      <label htmlFor={id} style={{ cursor: 'pointer', display: 'block' }}>
+        {value ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <CheckIcon sx={{ color: '#7B1113', fontSize: 20 }} />
+            <Typography variant="body2" sx={{ color: '#7B1113', fontWeight: 500 }}>
+              {multiple ? `${value} file(s) selected` : value}
+            </Typography>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <UploadIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+            <Typography variant="body2" color="text.secondary">{label}</Typography>
+          </Box>
+        )}
+      </label>
+    </Box>
+  );
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" sx={{ color: '#7B1113' }}>
+        <Typography variant="h4" fontWeight="bold" sx={{ color: '#7B1113' }}>
           Available Positions
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
@@ -187,73 +168,47 @@ const AvailablePositions = () => {
         </Typography>
       </Box>
 
+      {/* Filters */}
       <Paper elevation={2} sx={{ p: 3, mb: 4, borderRadius: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid item xs={12} md={5}>
             <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search positions..."
-              InputProps={{
-                startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} />
-              }}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  bgcolor: 'background.paper'
-                }
-              }}
+              fullWidth variant="outlined" placeholder="Search positions..."
+              InputProps={{ startAdornment: <SearchIcon color="action" sx={{ mr: 1 }} /> }}
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              select
-              fullWidth
-              variant="outlined"
-              label="College"
-              value={departmentFilter}
-              onChange={(e) => setDepartmentFilter(e.target.value)}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 3,
-                  bgcolor: 'background.paper'
-                }
-              }}
-            >
-              <MenuItem value="all">All Colleges</MenuItem>
-              {colleges.map(college => (
-                <MenuItem key={college} value={college}>
-                  {college}
-                </MenuItem>
-              ))}
-            </TextField>
+          <Grid item xs={12} md={5}>
+            <Autocomplete
+              options={colleges}
+              value={collegeFilter}
+              onChange={(_, v) => setCollegeFilter(v)}
+              renderInput={(params) => (
+                <TextField {...params} label="Filter by College" placeholder="All Colleges"
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
+              )}
+              renderOption={(props, option) => (
+                <Box component="li" {...props} sx={{ py: 1, whiteSpace: 'normal' }}>
+                  <Typography variant="body2">{option}</Typography>
+                </Box>
+              )}
+              clearOnEscape
+            />
           </Grid>
           <Grid item xs={12} md={2}>
-            <Button
-              fullWidth
-              variant="outlined"
-              startIcon={<FilterListIcon />}
-              onClick={() => {
-                setSearchTerm('');
-                setDepartmentFilter('all');
-              }}
-              sx={{ height: '56px', borderRadius: 3 }}
-            >
+            <Button fullWidth variant="outlined" startIcon={<FilterListIcon />}
+              onClick={() => { setSearchTerm(''); setCollegeFilter(null); }}
+              sx={{ height: '56px', borderRadius: 2 }}>
               Clear
             </Button>
           </Grid>
         </Grid>
       </Paper>
 
+      {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
+        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} variant="scrollable" scrollButtons="auto">
           <Tab label="All Positions" value="all" />
           <Tab label="Eligible to Apply" value="eligible" />
           <Tab label="My Applications" value="applied" />
@@ -262,118 +217,70 @@ const AvailablePositions = () => {
 
       {isLoading && (
         <Box display="flex" justifyContent="center" my={4}>
-          <CircularProgress />
+          <CircularProgress sx={{ color: '#7B1113' }} />
         </Box>
       )}
 
       {!isLoading && filteredPositions.length === 0 && (
         <Paper elevation={0} sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary">
-            {tabValue === 'applied'
-              ? "You haven't applied to any positions yet"
-              : "No available positions match your criteria"}
+            {tabValue === 'applied' ? "You haven't applied to any positions yet" : "No available positions match your criteria"}
           </Typography>
         </Paper>
       )}
 
+      {/* Position Cards */}
       <Grid container spacing={3}>
-        {filteredPositions && filteredPositions.map((position) => {
+        {filteredPositions.map((position) => {
           const applicationStatus = getApplicationStatus(position._id);
           const deadlinePassed = new Date(position.deadline) < new Date();
-
           return (
             <Grid item key={position._id} xs={12} sm={6} md={4}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.3s, box-shadow 0.3s',
-                  '&:hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: 6
-                  }
-                }}
-              >
+              <Card sx={{
+                height: '100%', display: 'flex', flexDirection: 'column',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 }
+              }}>
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Chip
-                      label={position.college}
-                      size="small"
-                      color="primary"
-                      variant="outlined"
-                    />
-                    <Box>
-                      {deadlinePassed && (
-                        <Chip
-                          icon={<ClosedIcon fontSize="small" />}
-                          label="Closed"
-                          size="small"
-                          color="error"
-                          sx={{ ml: 1 }}
-                        />
-                      )}
-                      {applicationStatus && (
-                        <Chip
-                          icon={<AppliedIcon fontSize="small" />}
-                          label={applicationStatus.text}
-                          size="small"
-                          color={applicationStatus.color}
-                          sx={{ ml: 1 }}
-                        />
-                      )}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
+                    <Chip label={position.positionType} size="small" variant="outlined" color="primary" />
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      {deadlinePassed && <Chip icon={<ClosedIcon fontSize="small" />} label="Closed" size="small" color="error" />}
+                      {applicationStatus && <Chip icon={<AppliedIcon fontSize="small" />} label={applicationStatus.text} size="small" color={applicationStatus.color} />}
                     </Box>
                   </Box>
 
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, mt: 1 }}>
                     {position.title}
                   </Typography>
-                  
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                  <Typography variant="caption" sx={{ color: '#7B1113', fontWeight: 500, display: 'block', mb: 0.5 }}>
+                    {position.college}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     {position.department}
                   </Typography>
-
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    {position.description.length > 150
-                      ? `${position.description.substring(0, 150)}...`
+                    {position.description?.length > 120
+                      ? `${position.description.substring(0, 120)}...`
                       : position.description}
                   </Typography>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                    <CalendarTodayIcon color="action" sx={{ mr: 1, fontSize: '1rem' }} />
-                    <Typography variant="caption">
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CalendarTodayIcon sx={{ mr: 0.5, fontSize: '0.9rem', color: 'text.secondary' }} />
+                    <Typography variant="caption" color="text.secondary">
                       Deadline: {new Date(position.deadline).toLocaleDateString()}
                     </Typography>
                   </Box>
                 </CardContent>
 
-                <CardActions sx={{ p: 2 }}>
-                  <Button
-                    size="small"
-                    startIcon={<DescriptionIcon />}
-                    onClick={() => {
-                      setSelectedPosition(position);
-                      setOpenDialog(true);
-                    }}
-                    sx={{ mr: 1 }}
-                  >
+                <CardActions sx={{ p: 2, borderTop: '1px solid #f1f5f9' }}>
+                  <Button size="small" startIcon={<DescriptionIcon />}
+                    onClick={() => { setSelectedPosition(position); setOpenDialog(true); }}>
                     Details
                   </Button>
-
                   {!applicationStatus && !deadlinePassed && (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => {
-                        setSelectedPosition(position);
-                        setOpenDialog(true);
-                      }}
-                      sx={{
-                        ml: 'auto',
-                      bgcolor: '#7B1113',
-                        '&:hover': { bgcolor: '#5a0d0f' },
-                      }}
-                    >
+                    <Button variant="contained" size="small"
+                      onClick={() => { setSelectedPosition(position); setOpenDialog(true); }}
+                      sx={{ ml: 'auto', bgcolor: '#7B1113', '&:hover': { bgcolor: '#5a0d0f' } }}>
                       Apply Now
                     </Button>
                   )}
@@ -384,247 +291,142 @@ const AvailablePositions = () => {
         })}
       </Grid>
 
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
-      >
-        <DialogTitle sx={{
-          bgcolor: 'primary.main',
-          color: 'white',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          {selectedPosition?.title}
-          <IconButton
-            aria-label="close"
-            onClick={() => setOpenDialog(false)}
-            sx={{ color: 'white' }}
-          >
+      {/* Position Detail & Apply Dialog */}
+      <Dialog open={openDialog} onClose={() => { setOpenDialog(false); setFiles({ cv: null, coverLetter: null, certificates: [] }); }}
+        maxWidth="md" fullWidth PaperProps={{ sx: { borderRadius: 2, overflow: 'hidden' } }}>
+
+        <Box sx={{ bgcolor: '#7B1113', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>{selectedPosition?.title}</Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
+              {selectedPosition?.college} · {selectedPosition?.department}
+            </Typography>
+          </Box>
+          <IconButton onClick={() => { setOpenDialog(false); setFiles({ cv: null, coverLetter: null, certificates: [] }); }} sx={{ color: '#fff' }}>
             <CloseIcon />
           </IconButton>
-        </DialogTitle>
+        </Box>
 
-        <DialogContent dividers sx={{ p: 3 }}>
+        <DialogContent sx={{ p: 3 }}>
           {selectedPosition && (
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  College: {selectedPosition.college}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Department: {selectedPosition.department}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Position Type: {selectedPosition.positionType}
-                </Typography>
-                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Deadline: {new Date(selectedPosition.deadline).toLocaleDateString()}
-                </Typography>
+              {/* Info */}
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="text.secondary">Position Type</Typography>
+                <Typography variant="body1" fontWeight={500} mb={1}>{selectedPosition.positionType}</Typography>
+                <Typography variant="body2" color="text.secondary">Deadline</Typography>
+                <Typography variant="body1" fontWeight={500}>{new Date(selectedPosition.deadline).toLocaleDateString()}</Typography>
               </Grid>
+              <Grid item xs={12} sm={6}>
+                <Typography variant="body2" color="text.secondary">College</Typography>
+                <Typography variant="body1" fontWeight={500} mb={1}>{selectedPosition.college}</Typography>
+                <Typography variant="body2" color="text.secondary">Department</Typography>
+                <Typography variant="body1" fontWeight={500}>{selectedPosition.department}</Typography>
+              </Grid>
+
+              <Grid item xs={12}><Divider /></Grid>
 
               <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Description
-                </Typography>
-                <Typography paragraph>
-                  {selectedPosition.description}
-                </Typography>
+                <Typography variant="subtitle1" fontWeight={700} gutterBottom>Description</Typography>
+                <Typography variant="body2" color="text.secondary">{selectedPosition.description}</Typography>
               </Grid>
 
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
-                  Requirements
-                </Typography>
-                <Box component="ul" sx={{ pl: 2 }}>
-                  {selectedPosition.requirements?.map((req, i) => (
-                    <Box component="li" key={i} sx={{ mb: 1 }}>
-                      <Typography>{req}</Typography>
-                    </Box>
-                  ))}
-                </Box>
-              </Grid>
+              {selectedPosition.requirements?.length > 0 && (
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" fontWeight={700} gutterBottom>Requirements</Typography>
+                  <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                    {selectedPosition.requirements.map((req, i) => (
+                      <Box component="li" key={i} sx={{ mb: 0.5 }}>
+                        <Typography variant="body2">{req}</Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </Grid>
+              )}
 
+              {/* Already applied */}
               {getApplicationStatus(selectedPosition._id) && (
                 <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Your Application
-                  </Typography>
-                  <Alert severity={getApplicationStatus(selectedPosition._id).color} sx={{ mb: 2 }}>
-                    Status: {getApplicationStatus(selectedPosition._id).text}
+                  <Divider sx={{ mb: 2 }} />
+                  <Alert severity={getApplicationStatus(selectedPosition._id).color === 'warning' ? 'warning' : 'info'} sx={{ mb: 2 }}>
+                    Your application status: <strong>{getApplicationStatus(selectedPosition._id).text}</strong>
                   </Alert>
                   {(() => {
-                    const application = getApplicationDetails(selectedPosition._id);
+                    const app = getApplicationDetails(selectedPosition._id);
+                    if (!app) return null;
                     return (
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                          Applied At: {new Date(application.appliedAt).toLocaleString()}
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
-                          Applicant: {application.applicant.username} ({application.applicant.email})
-                        </Typography>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1 }}>
-                          Documents:
-                        </Typography>
-                        <Box component="ul" sx={{ pl: 2 }}>
-                          {application.documents.cv && (
-                            <Box component="li" sx={{ mb: 1 }}>
-                              <Link href={application.documents.cv} target="_blank" rel="noopener">
-                                View CV
-                              </Link>
-                            </Box>
-                          )}
-                          {application.documents.coverLetter && (
-                            <Box component="li" sx={{ mb: 1 }}>
-                              <Link href={application.documents.coverLetter} target="_blank" rel="noopener">
-                                View Cover Letter
-                              </Link>
-                            </Box>
-                          )}
-                          {application.documents.certificates && application.documents.certificates.length > 0 ? (
-                            application.documents.certificates.map((cert, i) => (
-                              <Box component="li" key={i} sx={{ mb: 1 }}>
-                                <Link href={cert} target="_blank" rel="noopener">
-                                  View Certificate {i + 1}
-                                </Link>
-                              </Box>
-                            ))
-                          ) : (
-                            <Box component="li" sx={{ mb: 1 }}>
-                              <Typography>No certificates uploaded</Typography>
-                            </Box>
-                          )}
-                        </Box>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {app.documents?.cv && <Chip label="View CV" component="a" href={app.documents.cv} target="_blank" clickable size="small" sx={{ bgcolor: '#fdf0f0', color: '#7B1113' }} />}
+                        {app.documents?.coverLetter && <Chip label="Cover Letter" component="a" href={app.documents.coverLetter} target="_blank" clickable size="small" sx={{ bgcolor: '#fdf0f0', color: '#7B1113' }} />}
+                        {app.documents?.certificates?.map((c, i) => (
+                          <Chip key={i} label={`Certificate ${i + 1}`} component="a" href={c} target="_blank" clickable size="small" sx={{ bgcolor: '#fdf0f0', color: '#7B1113' }} />
+                        ))}
                       </Box>
                     );
                   })()}
                 </Grid>
               )}
 
+              {/* Apply form */}
               {!getApplicationStatus(selectedPosition._id) && new Date(selectedPosition.deadline) >= new Date() && (
                 <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', mt: 2 }}>
-                    Apply for this Position
-                  </Typography>
-
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      Required Documents
-                    </Typography>
-
-                    <Box sx={{ mb: 3 }}>
-                      <input
+                  <Divider sx={{ mb: 2 }} />
+                  <Typography variant="subtitle1" fontWeight={700} gutterBottom>Upload Documents</Typography>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                        CV / Resume <span style={{ color: '#7B1113' }}>*</span>
+                      </Typography>
+                      <FileUploadBox
+                        id="cv-upload" label="Click to upload CV"
                         accept=".pdf,.doc,.docx"
-                        style={{ display: 'none' }}
-                        id="cv-upload"
-                        type="file"
+                        value={files.cv?.name || null}
                         onChange={(e) => setFiles({ ...files, cv: e.target.files[0] })}
                       />
-                      <label htmlFor="cv-upload">
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          startIcon={<DescriptionIcon />}
-                          sx={{ mr: 2 }}
-                        >
-                          Upload CV *
-                        </Button>
-                      </label>
-                      {files.cv && (
-                        <Typography variant="caption" sx={{ ml: 1 }}>
-                          {files.cv.name}
-                        </Typography>
-                      )}
-                    </Box>
-
-                    <Box sx={{ mb: 3 }}>
-                      <input
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                        Cover Letter <span style={{ color: '#94a3b8' }}>(optional)</span>
+                      </Typography>
+                      <FileUploadBox
+                        id="cover-letter-upload" label="Click to upload Cover Letter"
                         accept=".pdf,.doc,.docx"
-                        style={{ display: 'none' }}
-                        id="cover-letter-upload"
-                        type="file"
+                        value={files.coverLetter?.name || null}
                         onChange={(e) => setFiles({ ...files, coverLetter: e.target.files[0] })}
                       />
-                      <label htmlFor="cover-letter-upload">
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          startIcon={<DescriptionIcon />}
-                          sx={{ mr: 2 }}
-                        >
-                          Upload Cover Letter
-                        </Button>
-                      </label>
-                      {files.coverLetter && (
-                        <Typography variant="caption" sx={{ ml: 1 }}>
-                          {files.coverLetter.name}
-                        </Typography>
-                      )}
-                    </Box>
-
-                    <Box sx={{ mb: 3 }}>
-                      <input
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                        Certificates <span style={{ color: '#94a3b8' }}>(optional)</span>
+                      </Typography>
+                      <FileUploadBox
+                        id="certificates-upload" label="Click to upload Certificates"
                         accept=".pdf,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        id="certificates-upload"
-                        type="file"
-                        multiple
+                        value={files.certificates.length > 0 ? files.certificates.length : null}
                         onChange={(e) => setFiles({ ...files, certificates: [...e.target.files] })}
+                        multiple
                       />
-                      <label htmlFor="certificates-upload">
-                        <Button
-                          variant="outlined"
-                          component="span"
-                          startIcon={<DescriptionIcon />}
-                          sx={{ mr: 2 }}
-                        >
-                          Upload Certificates
-                        </Button>
-                      </label>
-                      {files.certificates.length > 0 && (
-                        <Typography variant="caption" sx={{ ml: 1 }}>
-                          {files.certificates.length} file(s) selected
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
+                    </Grid>
+                  </Grid>
                 </Grid>
               )}
             </Grid>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ p: 3 }}>
-          <Button
-            onClick={() => setOpenDialog(false)}
-            sx={{
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'action.hover' }
-            }}
-          >
+        <Box sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
+          <Button variant="outlined" onClick={() => { setOpenDialog(false); setFiles({ cv: null, coverLetter: null, certificates: [] }); }}
+            sx={{ borderColor: '#cbd5e1', color: '#64748b' }}>
             Close
           </Button>
-
-          {!getApplicationStatus(selectedPosition?._id) &&
-            new Date(selectedPosition?.deadline) >= new Date() && (
-              <Button
-                variant="contained"
-                onClick={() => handleApply(selectedPosition._id)}
-                disabled={!files.cv || isLoading}
-                sx={{
-                  bgcolor: 'primary.main',
-                  '&:hover': { bgcolor: 'primary.dark' },
-                  '&:disabled': { bgcolor: 'action.disabled' }
-                }}
-              >
-                {isLoading ? <CircularProgress size={24} color="inherit" /> : `Submit Application`}
-              </Button>
-            )}
-        </DialogActions>
+          {!getApplicationStatus(selectedPosition?._id) && new Date(selectedPosition?.deadline) >= new Date() && (
+            <Button variant="contained" onClick={() => handleApply(selectedPosition._id)}
+              disabled={!files.cv || isSubmitting}
+              sx={{ bgcolor: '#7B1113', '&:hover': { bgcolor: '#5a0d0f' }, minWidth: 160 }}>
+              {isSubmitting ? <CircularProgress size={20} color="inherit" /> : 'Submit Application'}
+            </Button>
+          )}
+        </Box>
       </Dialog>
     </Container>
   );

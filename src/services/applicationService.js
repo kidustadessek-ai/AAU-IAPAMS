@@ -4,14 +4,14 @@ import toast from 'react-hot-toast';
 export const applyToPosition = async (formData) => {
   try {
     const res = await api.post('/applications', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': undefined },
     });
     return { success: true, data: res.data };
   } catch (error) {
-    return {
-      success: false,
-      error: error.response?.data || { message: 'Failed to submit application' },
-    };
+    const msg = error.response?.data?.message || error.message || 'Failed to submit application';
+    const errors = error.response?.data?.errors;
+    toast.error(errors ? errors.join(', ') : msg);
+    return { success: false, error: error.response?.data || { message: msg } };
   }
 };
 

@@ -149,27 +149,35 @@ export const createApplication = async (req, res) => {
       });
     }
 
-    // Upload CV
-    documents.cv = await uploadToCloudinary(
+    // Helper: upload to Cloudinary with fallback
+    const uploadFile = async (buffer, folder, mimetype) => {
+      try {
+        return await uploadToCloudinary(buffer, folder, 'raw');
+      } catch (err) {
+        // Fallback: store as base64 data URL if Cloudinary fails
+        const base64 = buffer.toString('base64');
+        return `data:${mimetype};base64,${base64}`;
+      }
+    };
+
+    documents.cv = await uploadFile(
       req.files.cv[0].buffer,
       'aau-iapams/applications/cv',
-      'raw'
+      req.files.cv[0].mimetype
     );
 
-    // Upload cover letter if provided
     if (req.files.coverLetter) {
-      documents.coverLetter = await uploadToCloudinary(
+      documents.coverLetter = await uploadFile(
         req.files.coverLetter[0].buffer,
         'aau-iapams/applications/cover-letters',
-        'raw'
+        req.files.coverLetter[0].mimetype
       );
     }
 
-    // Upload certificates if provided
     if (req.files.certificates) {
       documents.certificates = await Promise.all(
         req.files.certificates.map(file =>
-          uploadToCloudinary(file.buffer, 'aau-iapams/applications/certificates', 'raw')
+          uploadFile(file.buffer, 'aau-iapams/applications/certificates', file.mimetype)
         )
       );
     }
@@ -191,9 +199,10 @@ export const createApplication = async (req, res) => {
       data: populatedApplication,
     });
   } catch (error) {
+    console.error('createApplication error:', error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || 'Failed to submit application',
     });
   }
 };
