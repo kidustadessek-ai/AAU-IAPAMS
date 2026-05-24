@@ -5,7 +5,6 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { FiUser, FiEdit2, FiKey, FiLogOut, FiChevronDown } from 'react-icons/fi';
-import { SchoolOutlined } from '@mui/icons-material';
 
 const ROLE_LABELS = { admin: 'Administrator', evaluator: 'Evaluator', staff: 'Academic Staff' };
 
@@ -30,11 +29,12 @@ export const Header = ({ title, user, profilePhoto, onLogout, onEditProfile }) =
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexGrow: 1 }}>
           <Box sx={{
             width: 34, height: 34, borderRadius: '8px',
-            bgcolor: 'rgba(255,255,255,0.12)',
+            bgcolor: 'rgba(255,255,255,0.95)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: '1px solid rgba(255,255,255,0.15)',
+            border: '1px solid rgba(255,255,255,0.2)',
+            overflow: 'hidden', p: 0.3,
           }}>
-            <SchoolOutlined sx={{ fontSize: 18, color: '#C9A84C' }} />
+            <img src="/aau.png" alt="AAU" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </Box>
           <Box>
             <Typography variant="subtitle1" sx={{ color: '#fff', fontWeight: 700, lineHeight: 1.2, letterSpacing: 0.2 }}>

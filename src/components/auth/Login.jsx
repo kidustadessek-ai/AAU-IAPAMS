@@ -7,7 +7,7 @@ import {
   InputLabel, Link as MuiLink, MenuItem, Select, TextField,
   Typography, CircularProgress,
 } from '@mui/material';
-import { Visibility, VisibilityOff, SchoolOutlined } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { ThemeProvider } from '@mui/material/styles';
 import { aauTheme } from '../../theme';
 
@@ -67,14 +67,19 @@ const Login = () => {
           }} />
 
           <Box sx={{ position: 'relative', textAlign: 'center' }}>
-            {/* AAU Seal placeholder */}
+            {/* AAU Logo */}
             <Box sx={{
-              width: 96, height: 96, borderRadius: '50%',
-              border: '3px solid rgba(255,255,255,0.3)',
+              width: 110, height: 110,
+              borderRadius: '50%',
+              border: '3px solid rgba(255,255,255,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              mx: 'auto', mb: 4, bgcolor: 'rgba(255,255,255,0.08)',
+              mx: 'auto', mb: 4,
+              bgcolor: 'rgba(255,255,255,0.95)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+              overflow: 'hidden',
+              p: 1,
             }}>
-              <SchoolOutlined sx={{ fontSize: 48, color: 'rgba(255,255,255,0.9)' }} />
+              <img src="/aau.png" alt="Addis Ababa University" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </Box>
 
             <Typography variant="h4" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 0.5, mb: 1 }}>
