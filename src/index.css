@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f5f4f2;
+  color: #1a1a2e;
+}
+
+/* Premium scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1c4c4; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #7B1113; }
+
+/* Smooth transitions */
+a { transition: color 0.15s ease; }
+button { transition: all 0.15s ease; }
+
+/* Remove blue outline on focus for mouse users */
+:focus:not(:focus-visible) { outline: none; }

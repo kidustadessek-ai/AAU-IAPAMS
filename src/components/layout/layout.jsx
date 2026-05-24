@@ -113,14 +113,14 @@ export const DashboardLayout = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: '#f5f4f2' }}>
 
-      {/* Fixed Sidebar — starts below the 64px AppBar */}
-      <div className="fixed top-16 left-0 h-[calc(100vh-64px)] w-64 bg-white shadow-lg z-10 overflow-y-auto">
+      {/* Fixed Sidebar */}
+      <div className="fixed top-16 left-0 h-[calc(100vh-64px)] w-64 z-10 overflow-y-auto" style={{ backgroundColor: '#1a0a0b' }}>
         <Sidebar navLinks={navLinks} />
       </div>
 
-      {/* Main content area — offset by sidebar width */}
+      {/* Main content area */}
       <div className="flex-1 flex flex-col ml-64">
         <Header
           title={title}
@@ -141,16 +141,17 @@ export const DashboardLayout = ({
           isLoading={isLoadingProfile}
         />
 
-        {/* Main content — mt-16 clears the fixed 64px AppBar */}
-        <main className="flex-1 p-4 sm:p-6 mt-16">
+        {/* Main content */}
+        <main className="flex-1 p-5 sm:p-7 mt-16" style={{ backgroundColor: '#f5f4f2' }}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white shadow-md rounded-lg p-4 sm:p-6 min-h-full"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-xl p-5 sm:p-7 min-h-full"
+              style={{ boxShadow: '0 1px 3px rgba(0,0,0,0.06)', border: '1px solid #f0eded' }}
             >
               {children}
             </motion.div>
