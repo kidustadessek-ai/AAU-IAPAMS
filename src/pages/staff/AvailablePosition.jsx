@@ -39,6 +39,7 @@ import toast from 'react-hot-toast';
 import { getPositions } from '../../services/positionService';
 import { useAuth } from '../../context/authContext';
 import { getMyApplications, applyToPosition } from '../../services/applicationService';
+import { getColleges, findCollegeByDepartment } from '../../data/aauStructure';
 
 const AvailablePositions = () => {
   const { auth } = useAuth();
@@ -56,6 +57,8 @@ const AvailablePositions = () => {
     coverLetter: null,
     certificates: []
   });
+
+  const colleges = getColleges();
 
   useEffect(() => {
     fetchData();
@@ -110,7 +113,8 @@ const AvailablePositions = () => {
       );
     }
     if (departmentFilter !== 'all') {
-      result = result.filter(p => p.department === departmentFilter);
+      // Filter by college (departmentFilter now contains college name)
+      result = result.filter(p => p.college === departmentFilter);
     }
     if (tabValue === 'applied') {
       const appliedPositionIds = applications.map(a => a.position._id);
@@ -172,18 +176,6 @@ const AvailablePositions = () => {
     return applications.find(a => a.position?._id === positionId) || null;
   };
 
-  const departments = [
-    'all',
-    'product',
-    'Computer Science',
-    'engineering',
-    'hr',
-    'finance',
-    'it',
-    'research',
-    'quality'
-  ];
-
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
       <Box sx={{ mb: 4 }}>
@@ -191,7 +183,7 @@ const AvailablePositions = () => {
           Available Positions
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Apply for open positions at Haramaya University
+          Apply for open positions at Addis Ababa University
         </Typography>
       </Box>
 
@@ -220,7 +212,7 @@ const AvailablePositions = () => {
               select
               fullWidth
               variant="outlined"
-              label="Department"
+              label="College"
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
               sx={{
@@ -230,9 +222,10 @@ const AvailablePositions = () => {
                 }
               }}
             >
-              {departments.map(dept => (
-                <MenuItem key={dept} value={dept}>
-                  {dept === 'all' ? 'All Departments' : dept.charAt(0).toUpperCase() + dept.slice(1)}
+              <MenuItem value="all">All Colleges</MenuItem>
+              {colleges.map(college => (
+                <MenuItem key={college} value={college}>
+                  {college}
                 </MenuItem>
               ))}
             </TextField>
@@ -305,7 +298,7 @@ const AvailablePositions = () => {
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Chip
-                      label={position.department}
+                      label={position.college}
                       size="small"
                       color="primary"
                       variant="outlined"
@@ -334,6 +327,10 @@ const AvailablePositions = () => {
 
                   <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
                     {position.title}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontWeight: 500 }}>
+                    {position.department}
                   </Typography>
 
                   <Typography variant="body2" color="text.secondary" paragraph>
@@ -416,6 +413,9 @@ const AvailablePositions = () => {
           {selectedPosition && (
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
+                  College: {selectedPosition.college}
+                </Typography>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 'bold' }}>
                   Department: {selectedPosition.department}
                 </Typography>
