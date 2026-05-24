@@ -114,23 +114,12 @@ const PositionManagement = () => {
 
   const getEvaluators = async () => {
     try {
-
-      const res = await getUsers({
-        role: 'evaluator'
-      },
-        auth?.tokens?.accessToken
-
-      );
-      if (res.success) {
-        setEvaluators(res.data);
-      }
-
+      const res = await getUsers({ role: 'evaluator' });
+      if (res.success) setEvaluators(res.data);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch evaluators');
-      console.error('Error fetching evaluators:', error);
-
+      toast.error('Failed to fetch evaluators');
     }
-  }
+  };
   useEffect(() => {
     if (openModal) {
       getEvaluators();
@@ -153,26 +142,15 @@ const PositionManagement = () => {
       const positionPayload = {
         title: formData.title,
         description: formData.description,
+        college: formData.college,
         department: formData.department,
         positionType: formData.positionType,
         requirements: formData.requirements.filter(r => r.trim() !== ''),
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
-        status: 'open',
-        evaluationCriteria: evaluationCriteria,
-        createdBy: user._id,
         evaluators: formData.evaluators
       };
 
-      const newPosition = {
-        ...positionPayload,
-        id: `${positions.length + 1}`,
-        applicants: 0,
-        status: status,
-        createdBy: user._id,
-        createdAt: new Date().toISOString()
-      };
-      console.log('Position Payload:', positionPayload);
-      const res = await createPosition(positionPayload, auth.tokens.accessToken);
+      const res = await createPosition(positionPayload);
       if (!res.success) {
         throw new Error(res.error?.message || 'Failed to create position');
       }
@@ -183,8 +161,7 @@ const PositionManagement = () => {
       resetForm();
 
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create position');
-      console.error('Error creating position:', error);
+      toast.error(error.message || 'Failed to create position');
     } finally {
       setIsLoading(false);
     }
@@ -238,14 +215,13 @@ const PositionManagement = () => {
   //    get positions
   const fetchPositions = async () => {
     try {
-      const res = await getPositions(auth.tokens.accessToken);
+      const res = await getPositions();
       if (!res.success) {
         throw new Error(res.error.message || 'Failed to fetch positions');
       }
       setPositions(res.data);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to fetch positions');
-      console.error('Error fetching positions:', error);
+      toast.error(error.message || 'Failed to fetch positions');
     }
   };
 

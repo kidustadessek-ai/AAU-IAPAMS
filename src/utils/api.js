@@ -43,7 +43,7 @@ api.interceptors.response.use(
 
         const newTokens = { ...tokens, accessToken: data.data.accessToken };
         localStorage.setItem('tokens', JSON.stringify(newTokens));
-        original.headers.Authorization = `Bearer data.data.accessToken`;
+        original.headers.Authorization = `Bearer ${data.data.accessToken}`;
         return api(original);
       } catch (_) {
         localStorage.removeItem('user');
