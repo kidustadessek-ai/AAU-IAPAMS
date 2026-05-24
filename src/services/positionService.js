@@ -66,3 +66,15 @@ export const closePosition = async (id) => {
     };
   }
 };
+
+export const deletePosition = async (id) => {
+  try {
+    const res = await api.delete(`/positions/${id}`);
+    return { success: true, data: res.data };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.response?.data || { message: 'Failed to delete position' },
+    };
+  }
+};

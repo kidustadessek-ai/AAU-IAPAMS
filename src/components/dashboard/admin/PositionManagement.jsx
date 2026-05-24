@@ -33,12 +33,12 @@ import {
   Visibility as VisibilityIcon,
   FilterList as FilterListIcon,
   ViewModule as ViewModuleIcon,
-  ViewList as ViewListIcon
+  ViewList as ViewListIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../../context/authContext';
-import { api } from '../../../utils/api';
 import toast from 'react-hot-toast';
-import { createPosition, getPositions } from '../../../services/positionService';
+import { createPosition, getPositions, deletePosition, closePosition } from '../../../services/positionService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 import { aauStructure, getColleges, getDepartments } from '../../../data/aauStructure';
 
@@ -56,6 +56,8 @@ const PositionManagement = () => {
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [filterDepartments, setFilterDepartments] = useState([]);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const user = auth?.user;
   // Form state
@@ -69,8 +71,6 @@ const PositionManagement = () => {
     deadline: '',
     evaluators: []
   });
-  const [evaluationCriteria, setEvaluationCriteria] = useState(['Academic Qualification']);
-  const [newCriteria, setNewCriteria] = useState('');
   const [evaluators, setEvaluators] = useState([]);
   const [availableDepartments, setAvailableDepartments] = useState([]);
   
@@ -92,13 +92,6 @@ const PositionManagement = () => {
     setCollegeFilter(selected);
     setDepartmentFilter('all');
     setFilterDepartments(selected === 'all' ? [] : getDepartments(selected));
-  };
-
-  const handleAddCriteria = () => {
-    if (newCriteria.trim()) {
-      setEvaluationCriteria([...evaluationCriteria, newCriteria]);
-      setNewCriteria('');
-    }
   };
 
   const handleInputChange = (e) => {
@@ -187,13 +180,37 @@ const PositionManagement = () => {
       evaluators: []
     });
     setAvailableDepartments([]);
-    setEvaluationCriteria(['Academic Qualification']);
-    setNewCriteria('');
   };
 
   const handlePositionClick = (position) => {
     setSelectedPosition(position);
     setOpenDetails(true);
+  };
+
+  const handleDeleteClick = (e, position) => {
+    e.stopPropagation();
+    setDeleteTarget(position);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      // If position is open, close it first before deleting
+      if (deleteTarget.status === 'open') {
+        const closeRes = await closePosition(deleteTarget._id);
+        if (!closeRes.success) throw new Error('Failed to close position before deletion');
+      }
+      const res = await deletePosition(deleteTarget._id);
+      if (!res.success) throw new Error(res.error?.message || 'Failed to delete position');
+      toast.success('Position deleted successfully!');
+      setDeleteTarget(null);
+      await fetchPositions();
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete position');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -441,28 +458,23 @@ const PositionManagement = () => {
                     <Badge
                       badgeContent={position.applicants}
                       color="primary"
-                      sx={{
-                        '& .MuiBadge-badge': {
-                          right: -5,
-                          top: 5,
-                          fontWeight: 'bold'
-                        }
-                      }}
+                      sx={{ '& .MuiBadge-badge': { right: -5, top: 5, fontWeight: 'bold' } }}
                     >
-                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
-                        Applicants
-                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 'medium' }}>Applicants</Typography>
                     </Badge>
-                    <Button
-                      size="small"
-                      startIcon={<VisibilityIcon />}
-                      sx={{
-                        color: 'primary.main',
-                        fontWeight: 'medium'
-                      }}
-                    >
-                      View
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}>
+                        View
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={(e) => handleDeleteClick(e, position)}
+                        sx={{ color: 'error.main' }}
+                      >
+                        Delete
+                      </Button>
+                    </Box>
                   </CardActions>
                 </Card>
               </Grid>
@@ -557,16 +569,19 @@ const PositionManagement = () => {
                   />
                 </Grid>
                 <Grid item xs={2}>
-                  <Button
-                    size="small"
-                    startIcon={<VisibilityIcon />}
-                    sx={{
-                      color: 'primary.main',
-                      fontWeight: 'medium'
-                    }}
-                  >
-                    View
-                  </Button>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}>
+                      View
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<DeleteIcon />}
+                      onClick={(e) => handleDeleteClick(e, position)}
+                      sx={{ color: 'error.main' }}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
                 </Grid>
               </Grid>
             </Paper>
@@ -675,25 +690,6 @@ const PositionManagement = () => {
                     No requirements specified.
                   </Typography>
                 )}
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                  Evaluation Criteria
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {selectedPosition.evaluationCriteria?.map((criteria, index) => (
-                    <Chip
-                      key={index}
-                      label={criteria}
-                      sx={{
-                        bgcolor: 'primary.light',
-                        color: 'primary.contrastText',
-                        fontWeight: 'medium'
-                      }}
-                    />
-                  ))}
-                </Box>
               </Grid>
             </Grid>
           )}
@@ -868,55 +864,12 @@ const PositionManagement = () => {
               />
             </Grid>
 
-            {/* Evaluation Criteria */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                5. Evaluation Criteria
-              </Typography>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {evaluationCriteria.map((criteria, index) => (
-                  <Chip
-                    key={index}
-                    label={criteria}
-                    onDelete={() => setEvaluationCriteria(evaluationCriteria.filter((_, i) => i !== index))}
-                    sx={{
-                      bgcolor: 'primary.light',
-                      color: 'primary.contrastText',
-                      '& .MuiChip-deleteIcon': {
-                        color: 'primary.contrastText'
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
-              <Box sx={{ display: 'flex' }}>
-                <TextField
-                  fullWidth
-                  label="Add new criteria"
-                  value={newCriteria}
-                  onChange={(e) => setNewCriteria(e.target.value)}
-                  sx={{ borderRadius: 2 }}
-                />
-                <Button
-                  variant="contained"
-                  onClick={handleAddCriteria}
-                  sx={{
-                    ml: 1,
-                    bgcolor: 'primary.main',
-                    '&:hover': { bgcolor: 'primary.dark' },
-                    borderRadius: 2
-                  }}
-                  startIcon={<AddIcon />}
-                >
-                  Add
-                </Button>
-              </Box>
-            </Grid>
+            {/* Evaluation Criteria section removed - not part of backend model */}
 
-            {/* Application Timeline */}
+            {/* Application Deadline */}
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                6. Application Deadline
+                5. Application Deadline
               </Typography>
               <TextField
                 fullWidth
@@ -935,39 +888,44 @@ const PositionManagement = () => {
               />
             </Grid>
             <Grid item xs={12}>
-  <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-    7. Assign Evaluators
-  </Typography>
-  <FormControl fullWidth>
-    <InputLabel>Select Evaluators</InputLabel>
-    <Select
-      multiple
-      name="evaluators"
-      value={formData.evaluators}
-      onChange={handleEvaluatorChange}
-      renderValue={(selected) => (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-          {selected.map((evaluatorId) => {
-            const evaluator = evaluators.find(e => e._id === evaluatorId);
-            return (
-              <Chip 
-                key={evaluatorId} 
-                label={evaluator ? evaluator.fullName : evaluatorId}
-                sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}
-              />
-            );
-          })}
-        </Box>
-      )}
-    >
-      {evaluators.map((evaluator) => (
-        <MenuItem key={evaluator._id} value={evaluator._id}>
-          {evaluator.fullName} ({evaluator.username})
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                6. Assign Evaluators
+              </Typography>
+              <FormControl fullWidth>
+                <InputLabel>Select Evaluators</InputLabel>
+                <Select
+                  multiple
+                  name="evaluators"
+                  value={formData.evaluators}
+                  onChange={handleEvaluatorChange}
+                  label="Select Evaluators"
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((evaluatorId) => {
+                        const evaluator = evaluators.find(e => e._id === evaluatorId);
+                        return (
+                          <Chip
+                            key={evaluatorId}
+                            label={evaluator ? evaluator.fullName : evaluatorId}
+                            sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  )}
+                >
+                  {evaluators.length === 0 ? (
+                    <MenuItem disabled>No evaluators found</MenuItem>
+                  ) : (
+                    evaluators.map((evaluator) => (
+                      <MenuItem key={evaluator._id} value={evaluator._id}>
+                        {evaluator.fullName} ({evaluator.email})
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -994,6 +952,50 @@ const PositionManagement = () => {
             }}
           >
             {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Publish Position'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'error.main' }}>
+          Delete Position
+        </DialogTitle>
+        <DialogContent>
+          {deleteTarget?.applicationCount > 0 ? (
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 1 }}>
+              <Typography variant="body2" sx={{ color: '#991b1b' }} fontWeight="medium">
+                ✕ Cannot delete — this position has {deleteTarget.applicationCount} existing application(s). Remove all applications first.
+              </Typography>
+            </Box>
+          ) : deleteTarget?.status === 'open' ? (
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 1 }}>
+              <Typography variant="body2" sx={{ color: '#1e40af' }} fontWeight="medium">
+                ℹ This position is currently open. It will be closed automatically before deletion.
+              </Typography>
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Are you sure you want to permanently delete <strong>{deleteTarget?.title}</strong>? This action cannot be undone.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={isDeleting || deleteTarget?.applicationCount > 0}
+            onClick={handleDeleteConfirm}
+          >
+            {isDeleting ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
           </Button>
         </DialogActions>
       </Dialog>
