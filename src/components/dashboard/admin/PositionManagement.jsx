@@ -23,7 +23,13 @@ import {
   CircularProgress,
   Divider,
   Avatar,
-  Badge
+  Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -39,6 +45,7 @@ import {
 import { useAuth } from '../../../context/authContext';
 import toast from 'react-hot-toast';
 import { createPosition, getPositions, deletePosition, closePosition } from '../../../services/positionService';
+import { getApplicationsByPosition, updateApplicationStatus } from '../../../services/applicationService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 import { aauStructure, getColleges, getDepartments } from '../../../data/aauStructure';
 
@@ -58,6 +65,10 @@ const PositionManagement = () => {
   const [filterDepartments, setFilterDepartments] = useState([]);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [openApplicants, setOpenApplicants] = useState(false);
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(null);
 
   const user = auth?.user;
   // Form state
@@ -211,6 +222,30 @@ const PositionManagement = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleViewApplicants = async (e, position) => {
+    e.stopPropagation();
+    setSelectedPosition(position);
+    setOpenApplicants(true);
+    setApplicantsLoading(true);
+    const res = await getApplicationsByPosition(position._id);
+    setApplicants(res.success ? res.data : []);
+    setApplicantsLoading(false);
+  };
+
+  const handleStatusUpdate = async (applicationId, newStatus) => {
+    setUpdatingStatus(applicationId);
+    const res = await updateApplicationStatus(applicationId, newStatus);
+    if (res.success) {
+      setApplicants(prev => prev.map(a =>
+        a._id === applicationId ? { ...a, status: newStatus } : a
+      ));
+      toast.success('Status updated');
+    } else {
+      toast.error('Failed to update status');
+    }
+    setUpdatingStatus(null);
   };
 
   const getStatusColor = (status) => {
@@ -460,7 +495,8 @@ const PositionManagement = () => {
                       <Typography variant="body2" sx={{ fontWeight: 'medium' }}>Applicants</Typography>
                     </Badge>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}>
+                      <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}
+                        onClick={(e) => handleViewApplicants(e, position)}>
                         View
                       </Button>
                       <Button
@@ -567,7 +603,8 @@ const PositionManagement = () => {
                 </Grid>
                 <Grid item xs={2}>
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}>
+                    <Button size="small" startIcon={<VisibilityIcon />} sx={{ color: 'primary.main' }}
+                      onClick={(e) => handleViewApplicants(e, position)}>
                       View
                     </Button>
                     <Button
@@ -704,10 +741,8 @@ const PositionManagement = () => {
           <Button
             variant="contained"
             color="primary"
-            sx={{
-              bgcolor: 'primary.main',
-              '&:hover': { bgcolor: 'primary.dark' }
-            }}
+            onClick={(e) => { setOpenDetails(false); handleViewApplicants(e, selectedPosition); }}
+            sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}
           >
             View Applicants
           </Button>
@@ -948,6 +983,128 @@ const PositionManagement = () => {
           >
             {isDeleting ? <CircularProgress size={20} color="inherit" /> : 'Delete'}
           </Button>
+        </DialogActions>
+      </Dialog>
+      {/* Applicants Dialog */}
+      <Dialog
+        open={openApplicants}
+        onClose={() => setOpenApplicants(false)}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <Box sx={{ bgcolor: '#7B1113', px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700 }}>
+              Applicants — {selectedPosition?.title}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              {selectedPosition?.department} · {applicants.length} applicant(s)
+            </Typography>
+          </Box>
+          <IconButton onClick={() => setOpenApplicants(false)} sx={{ color: '#fff' }}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        <DialogContent sx={{ p: 0 }}>
+          {applicantsLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress sx={{ color: '#7B1113' }} />
+            </Box>
+          ) : applicants.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center' }}>
+              <Typography color="text.secondary">No applications submitted for this position yet.</Typography>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead sx={{ bgcolor: '#fdf8f8' }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700 }}>Applicant</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Applied On</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Documents</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>Update Status</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {applicants.map((app) => (
+                    <TableRow key={app._id} hover>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: '#7B1113', fontSize: '0.8rem' }}>
+                            {(app.applicant?.fullName || app.applicant?.username || '?').charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Typography variant="body2" fontWeight={500}>
+                            {app.applicant?.fullName || app.applicant?.username || 'Unknown'}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">{app.applicant?.email || '—'}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {new Date(app.appliedAt || app.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                          {app.documents?.cv && (
+                            <Chip label="CV" size="small" component="a" href={app.documents.cv} target="_blank"
+                              clickable sx={{ bgcolor: '#fdf0f0', color: '#7B1113', fontSize: '0.7rem' }} />
+                          )}
+                          {app.documents?.coverLetter && (
+                            <Chip label="Cover Letter" size="small" component="a" href={app.documents.coverLetter} target="_blank"
+                              clickable sx={{ bgcolor: '#fdf0f0', color: '#7B1113', fontSize: '0.7rem' }} />
+                          )}
+                          {app.documents?.certificates?.map((cert, i) => (
+                            <Chip key={i} label={`Cert ${i + 1}`} size="small" component="a" href={cert} target="_blank"
+                              clickable sx={{ bgcolor: '#fdf0f0', color: '#7B1113', fontSize: '0.7rem' }} />
+                          ))}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={app.status?.replace('_', ' ')}
+                          size="small"
+                          color={
+                            app.status === 'shortlisted' ? 'success' :
+                            app.status === 'accepted' ? 'success' :
+                            app.status === 'rejected' ? 'error' :
+                            app.status === 'under_review' ? 'info' : 'warning'
+                          }
+                          sx={{ textTransform: 'capitalize' }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          size="small"
+                          value={app.status}
+                          disabled={updatingStatus === app._id}
+                          onChange={(e) => handleStatusUpdate(app._id, e.target.value)}
+                          sx={{ fontSize: '0.75rem', minWidth: 130 }}
+                        >
+                          <MenuItem value="pending">Pending</MenuItem>
+                          <MenuItem value="under_review">Under Review</MenuItem>
+                          <MenuItem value="shortlisted">Shortlisted</MenuItem>
+                          <MenuItem value="accepted">Accepted</MenuItem>
+                          <MenuItem value="rejected">Rejected</MenuItem>
+                        </Select>
+                        {updatingStatus === app._id && <CircularProgress size={14} sx={{ ml: 1, color: '#7B1113' }} />}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #e2e8f0' }}>
+          <Button onClick={() => setOpenApplicants(false)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Container>

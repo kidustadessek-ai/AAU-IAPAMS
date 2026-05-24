@@ -60,7 +60,23 @@ export const getEvaluations = async () => {
   }
 };
 
-export const submitEvaluation = async (applicationId, evaluationData) => {
+export const getApplicationsByPosition = async (positionId) => {
+  try {
+    const res = await api.get('/applications', { params: { position: positionId, limit: 100 } });
+    return { success: true, data: res.data.data || [] };
+  } catch (error) {
+    return { success: false, error: error.response?.data || { message: 'Failed to fetch applicants' } };
+  }
+};
+
+export const updateApplicationStatus = async (applicationId, status, notes = '') => {
+  try {
+    const res = await api.patch(`/applications/${applicationId}/status`, { status, notes });
+    return { success: true, data: res.data };
+  } catch (error) {
+    return { success: false, error: error.response?.data || { message: 'Failed to update status' } };
+  }
+};
   try {
     const res = await api.post(`/applications/${applicationId}/evaluate`, evaluationData);
     return { success: true, data: res.data };
