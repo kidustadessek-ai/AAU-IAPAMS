@@ -3,8 +3,8 @@ import ApplicationsChart from './_components/ApplicationsChart';
 import RecentActivities from './_components/RecentActivities';
 import RecentJobPosts from './_components/RecentJobPosts';
 import StatsCards from './_components/StatsCards';
-import { getUserStats } from '../../services/applicationService';
-import { useAuth } from '../../context/authContext';
+import { getUserStats } from '../../../services/applicationService';
+import { useAuth } from '../../../context/authContext';
 
 const Overview = () => {
   const { auth } = useAuth();
