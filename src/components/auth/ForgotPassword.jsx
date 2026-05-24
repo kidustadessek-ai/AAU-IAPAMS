@@ -68,7 +68,7 @@ const ForgotPassword = () => {
                   name="email"
                   type="email"
                   required
-                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                  className="appearance-none block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-[#7B1113] focus:border-[#7B1113] sm:text-sm"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -80,7 +80,7 @@ const ForgotPassword = () => {
               {message && (
                 <p
                   className={`mt-2 text-sm ${
-                    messageType === 'success' ? 'text-green-600' : 'text-red-600'
+                    messageType === 'success' ? 'text-[#7B1113]' : 'text-red-600'
                   }`}
                 >
                   {message}
@@ -92,7 +92,7 @@ const ForgotPassword = () => {
           <div className="flex space-x-3">
             <Link
               to="/login"
-              className="w-1/2 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              className="w-1/2 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
             >
               Cancel
             </Link>
@@ -101,9 +101,9 @@ const ForgotPassword = () => {
               disabled={loading}
               className={`w-1/2 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                 loading
-                  ? 'bg-green-400 cursor-not-allowed'
-                  : 'bg-green-600 hover:bg-green-700'
-              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+                  ? 'bg-[#a31518] cursor-not-allowed'
+                  : 'bg-[#7B1113] hover:bg-[#5a0d0f]'
+              } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]`}
             >
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
