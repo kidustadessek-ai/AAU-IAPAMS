@@ -82,8 +82,11 @@ const Login = () => {
           }}
         >
           <Paper elevation={3} sx={{ p: 4, width: '100%', borderRadius: 2 }}>
-            <Typography component="h1" variant="h4" align="center" sx={{ mb: 3, fontWeight: 'bold' }}>
-              AAU-IAPMS
+            <Typography component="h1" variant="h4" align="center" sx={{ mb: 1, fontWeight: 'bold' }}>
+              AAU-IAPAMS
+            </Typography>
+            <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
+              Addis Ababa University — Internal Academic Position Appointment Management System
             </Typography>
 
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
