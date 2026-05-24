@@ -717,42 +717,40 @@ const PositionManagement = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Post New Job Modal */}
+      {/* Post New Position Modal */}
       <Dialog
         open={openModal}
-        onClose={() => setOpenModal(false)}
+        onClose={() => { setOpenModal(false); resetForm(); }}
         maxWidth="md"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3 } }}
+        PaperProps={{ sx: { borderRadius: 2, overflow: 'hidden' } }}
       >
-        <DialogTitle sx={{
-          bgcolor: 'primary.main',
-          color: 'primary.contrastText',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          Post New Position
-          <IconButton
-            aria-label="close"
-            onClick={() => {
-              setOpenModal(false);
-              resetForm();
-            }}
-            sx={{ color: 'primary.contrastText' }}
-          >
+        {/* Header */}
+        <Box sx={{ bgcolor: '#1b5e20', px: 3, py: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 0.3 }}>
+              Post New Position
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+              Fill in the details below to publish a new position
+            </Typography>
+          </Box>
+          <IconButton onClick={() => { setOpenModal(false); resetForm(); }} sx={{ color: '#fff' }}>
             <CloseIcon />
           </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ p: 3 }}>
-          <Grid container spacing={3}>
-            {/* Position Information */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                1. Position Information
+        </Box>
+
+        <DialogContent sx={{ p: 0, bgcolor: '#f8fafc' }}>
+          <Box sx={{ p: 3 }}>
+
+            {/* Section: Basic Info */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+                Basic Information
               </Typography>
+              <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
               <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
+                <Grid item xs={12} md={8}>
                   <TextField
                     fullWidth
                     label="Position Title"
@@ -760,200 +758,156 @@ const PositionManagement = () => {
                     value={formData.title}
                     onChange={handleInputChange}
                     required
-                    sx={{ borderRadius: 2 }}
+                    size="small"
+                    placeholder="e.g. Assistant Professor of Computer Science"
                   />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth size="small" required>
                     <InputLabel>Position Type</InputLabel>
-                    <Select
-                      name="positionType"
-                      value={formData.positionType}
-                      label="Position Type"
-                      onChange={handleInputChange}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      {positionTypes.map(type => (
-                        <MenuItem key={type} value={type}>
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </MenuItem>
-                      ))}
+                    <Select name="positionType" value={formData.positionType} label="Position Type" onChange={handleInputChange}>
+                      {positionTypes.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
                     </Select>
                   </FormControl>
                 </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    required
+                    size="small"
+                    placeholder="Describe the role, responsibilities, and expectations..."
+                  />
+                </Grid>
               </Grid>
-            </Grid>
+            </Box>
 
-            {/* Position Description */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                2. Position Description
+            {/* Section: Location */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+                College & Department
               </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                required
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
-
-            {/* College and Department */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                3. College and Department
-              </Typography>
+              <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required>
+                  <FormControl fullWidth size="small" required>
                     <InputLabel>College</InputLabel>
-                    <Select
-                      name="college"
-                      value={formData.college}
-                      label="College"
-                      onChange={handleInputChange}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      {colleges.map(college => (
-                        <MenuItem key={college} value={college}>
-                          {college}
-                        </MenuItem>
-                      ))}
+                    <Select name="college" value={formData.college} label="College" onChange={handleInputChange}>
+                      {colleges.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <FormControl fullWidth required disabled={!formData.college}>
+                  <FormControl fullWidth size="small" required disabled={!formData.college}>
                     <InputLabel>Department</InputLabel>
-                    <Select
-                      name="department"
-                      value={formData.department}
-                      label="Department"
-                      onChange={handleInputChange}
-                      sx={{ borderRadius: 2 }}
-                    >
-                      {availableDepartments.map(dept => (
-                        <MenuItem key={dept} value={dept}>
-                          {dept}
-                        </MenuItem>
-                      ))}
+                    <Select name="department" value={formData.department} label="Department" onChange={handleInputChange}>
+                      {availableDepartments.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
                     </Select>
                   </FormControl>
                 </Grid>
               </Grid>
-            </Grid>
+            </Box>
 
-            {/* Requirements */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                4. Requirements
+            {/* Section: Requirements & Deadline */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+                Requirements & Deadline
               </Typography>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label="Requirements (one per line)"
-                name="requirements"
-                value={formData.requirements.join('\n')}
-                onChange={(e) => setFormData({ ...formData, requirements: e.target.value.split('\n') })}
-                sx={{ borderRadius: 2 }}
-              />
-            </Grid>
+              <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={8}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Requirements"
+                    size="small"
+                    placeholder="Enter each requirement on a new line"
+                    value={formData.requirements.join('\n')}
+                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value.split('\n') })}
+                    helperText="One requirement per line"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Application Deadline"
+                    name="deadline"
+                    value={formData.deadline}
+                    onChange={handleInputChange}
+                    required
+                    size="small"
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+              </Grid>
+            </Box>
 
-            {/* Evaluation Criteria section removed - not part of backend model */}
-
-            {/* Application Deadline */}
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                5. Application Deadline
+            {/* Section: Evaluators */}
+            <Box>
+              <Typography variant="overline" sx={{ color: '#1b5e20', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+                Assign Evaluators
               </Typography>
-              <TextField
-                fullWidth
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleInputChange}
-                required
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                InputProps={{
-                  endAdornment: <CalendarTodayIcon sx={{ color: 'action.active', mr: 1 }} />,
-                  sx: { borderRadius: 2 }
-                }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                6. Assign Evaluators
-              </Typography>
-              <FormControl fullWidth>
-                <InputLabel>Select Evaluators</InputLabel>
+              <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
+              <FormControl fullWidth size="small">
+                <InputLabel>Select Evaluators (optional)</InputLabel>
                 <Select
                   multiple
                   name="evaluators"
                   value={formData.evaluators}
                   onChange={handleEvaluatorChange}
-                  label="Select Evaluators"
+                  label="Select Evaluators (optional)"
                   renderValue={(selected) => (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                      {selected.map((evaluatorId) => {
-                        const evaluator = evaluators.find(e => e._id === evaluatorId);
-                        return (
-                          <Chip
-                            key={evaluatorId}
-                            label={evaluator ? evaluator.fullName : evaluatorId}
-                            sx={{ bgcolor: 'primary.light', color: 'primary.contrastText' }}
-                          />
-                        );
+                      {selected.map((id) => {
+                        const ev = evaluators.find(e => e._id === id);
+                        return <Chip key={id} label={ev ? ev.fullName : id} size="small" sx={{ bgcolor: '#e8f5e9', color: '#1b5e20' }} />;
                       })}
                     </Box>
                   )}
                 >
-                  {evaluators.length === 0 ? (
-                    <MenuItem disabled>No evaluators found</MenuItem>
-                  ) : (
-                    evaluators.map((evaluator) => (
-                      <MenuItem key={evaluator._id} value={evaluator._id}>
-                        {evaluator.fullName} ({evaluator.email})
-                      </MenuItem>
-                    ))
-                  )}
+                  {evaluators.length === 0
+                    ? <MenuItem disabled>No evaluators found</MenuItem>
+                    : evaluators.map(ev => (
+                        <MenuItem key={ev._id} value={ev._id}>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>{ev.fullName}</Typography>
+                            <Typography variant="caption" color="text.secondary">{ev.email}</Typography>
+                          </Box>
+                        </MenuItem>
+                      ))
+                  }
                 </Select>
               </FormControl>
-            </Grid>
-          </Grid>
+            </Box>
+
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
+
+        {/* Footer */}
+        <Box sx={{ px: 3, py: 2, bgcolor: '#fff', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 1.5 }}>
           <Button
-            onClick={() => {
-              setOpenModal(false);
-              resetForm();
-            }}
-            sx={{
-              mr: 1,
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'action.hover' }
-            }}
+            variant="outlined"
+            onClick={() => { setOpenModal(false); resetForm(); }}
+            sx={{ borderColor: '#cbd5e1', color: '#64748b', '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' } }}
           >
             Cancel
           </Button>
           <Button
+            variant="contained"
             onClick={() => handleSubmit('published')}
             disabled={isLoading}
-            variant="contained"
-            sx={{
-              bgcolor: 'primary.main',
-              '&:hover': { bgcolor: 'primary.dark' }
-            }}
+            sx={{ bgcolor: '#1b5e20', '&:hover': { bgcolor: '#145214' }, minWidth: 140 }}
           >
-            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Publish Position'}
+            {isLoading ? <CircularProgress size={20} color="inherit" /> : 'Publish Position'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
       {/* Delete Confirmation Dialog */}
       <Dialog
