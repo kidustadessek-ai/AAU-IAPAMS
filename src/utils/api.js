@@ -1,26 +1,22 @@
-  import axios from 'axios';
-  import { useAuthStore } from "../store/authStore";
-export const apiBaseurl =  
-import.meta.env.VITE_API_BASE_URL ||
-'https://aau-iapams-api.vercel.app/api/v1'; 
+import axios from 'axios';
+import { useAuthStore } from "../store/authStore";
+
+export const apiBaseurl =
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
 
 export const api = axios.create({
-    baseURL: `${apiBaseurl}`,
-  });
+  baseURL: apiBaseurl,
+});
 
-  export const publicApi = axios.create({
-    baseURL: `${apiBaseurl}`,
-  });
-
-
-
+export const publicApi = axios.create({
+  baseURL: apiBaseurl,
+});
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://aau-iapams-api.vercel.app/api/v1',
-  timeout: 10000, 
+  baseURL: apiBaseurl,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    
   },
 });
 
@@ -33,35 +29,20 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-
-
-
-
-export const loginUser = async (credentials) => {
-  try {
-    const response = await apiBaseurl.post('/auth/login', credentials);
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      // Handle specific error cases
-      if (error.response) {
-        switch (error.response.status) {
-          case 401:
-            throw new Error('Invalid credentials');
-          case 403:
-            throw new Error('Account is inactive');
-          case 429:
-            throw new Error('Too many attempts. Please try again later');
-          default:
-            throw new Error('Login failed. Please try again');
-        }
-      } else if (error.request) {
-        throw new Error('Network error. Please check your connection');
+// Also attach token to the default `api` instance
+api.interceptors.request.use((config) => {
+  const stored = localStorage.getItem('tokens');
+  if (stored) {
+    try {
+      const tokens = JSON.parse(stored);
+      if (tokens?.accessToken) {
+        config.headers.Authorization = `Bearer ${tokens.accessToken}`;
       }
-    }
-    throw new Error('An unexpected error occurred');
+    } catch (_) {}
   }
-};
+  return config;
+});
+
 
 export const forgotPassword = async (email) => {
   await apiClient.post('/auth/forgot-password', { email });
