@@ -1,62 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, FilterList, Grading, People, Checklist, 
   BarChart, AssignmentInd, Score, DoneAll, Pending
 } from '@mui/icons-material';
+import { useAuth } from '../../../context/authContext';
+import { api } from '../../../utils/api';
+import toast from 'react-hot-toast';
 
 const EvaluationManagement = () => {
-  const [evaluations, setEvaluations] = useState([
-    {
-      id: 1,
-      applicant: 'Kidus Tadesse',
-      position: 'Associate Professor - Computer Science',
-      evaluators: ['Prof. Ahmed Mohammed', 'Dr. Selamawit Tadesse'],
-      criteria: [
-        { name: 'Academic Qualification', weight: 30, score: 28 },
-        { name: 'Teaching Experience', weight: 25, score: 22 },
-        { name: 'Research Output', weight: 35, score: 30 },
-        { name: 'Community Service', weight: 10, score: 8 }
-      ],
-      status: 'In Progress',
-      overallScore: 88,
-      deadline: '2026-05-10'
-    },
-    {
-      id: 2,
-      applicant: 'Dr. Fatuma Mohammed',
-      position: 'Lecturer - Data Science',
-      evaluators: ['Dr. Yonas Alemayehu', 'Dr. Mesfin Tadesse'],
-      criteria: [
-        { name: 'Academic Qualification', weight: 30, score: 30 },
-        { name: 'Teaching Experience', weight: 25, score: 20 },
-        { name: 'Research Output', weight: 35, score: 32 },
-        { name: 'Community Service', weight: 10, score: 9 }
-      ],
-      status: 'Completed',
-      overallScore: 91,
-      deadline: '2026-05-05'
-    },
-    {
-      id: 3,
-      applicant: 'Dr. Tesfaye Abebe',
-      position: 'Professor - Artificial Intelligence',
-      evaluators: ['Prof. Ahmed Mohammed', 'Prof. Helen Kebede', 'Dr. Yonas Alemayehu'],
-      criteria: [
-        { name: 'Academic Qualification', weight: 25, score: 25 },
-        { name: 'Teaching Experience', weight: 20, score: 18 },
-        { name: 'Research Output', weight: 40, score: 35 },
-        { name: 'Leadership', weight: 15, score: 12 }
-      ],
-      status: 'Pending',
-      overallScore: 90,
-      deadline: '2026-05-15'
-    }
-  ]);
+  const { auth } = useAuth();
+  const [evaluations, setEvaluations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
     status: 'all',
     search: ''
   });
+
+  useEffect(() => {
+    fetchEvaluations();
+  }, [auth]);
+
+  const fetchEvaluations = async () => {
+    try {
+      const res = await api.get('/applications', {
+        headers: { Authorization: `Bearer ${auth?.tokens?.accessToken}` }
+      });
+      const apps = res.data?.data || [];
+      setEvaluations(apps.map(app => ({
+        id: app._id,
+        applicant: app.applicant?.fullName || app.applicant?.username || 'Unknown',
+        position: app.position?.title || 'Unknown Position',
+        evaluators: app.evaluations?.map(e => e.evaluator?.fullName || 'Unknown') || [],
+        criteria: [],
+        status: app.evaluations?.length === 0 ? 'Pending' : 
+                app.status === 'shortlisted' ? 'Completed' : 'In Progress',
+        overallScore: Math.round(app.averageScore * 10) || 0,
+        deadline: app.position?.deadline ? new Date(app.position.deadline).toLocaleDateString() : 'N/A'
+      })));
+    } catch (error) {
+      toast.error('Failed to load evaluations');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const statusOptions = ['All', 'Pending', 'In Progress', 'Completed'];
 
@@ -118,8 +105,16 @@ const EvaluationManagement = () => {
       
       {/* Evaluations Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+      {loading ? (
+        <div className="p-8 text-center text-gray-500">Loading evaluations...</div>
+      ) : filteredEvaluations.length === 0 ? (
+        <div className="p-8 text-center text-gray-500">
+          No evaluations found matching your criteria
+        </div>
+      ) : (
+        <>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
@@ -151,42 +146,42 @@ const EvaluationManagement = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${eval.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
-                        eval.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                      ${evalu.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' : 
+                        evalu.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
                         'bg-green-100 text-green-800'}`}>
-                      {eval.status === 'Pending' ? <Pending className="mr-1" fontSize="small" /> :
-                       eval.status === 'In Progress' ? <Grading className="mr-1" fontSize="small" /> :
+                      {evalu.status === 'Pending' ? <Pending className="mr-1" fontSize="small" /> :
+                       evalu.status === 'In Progress' ? <Grading className="mr-1" fontSize="small" /> :
                        <DoneAll className="mr-1" fontSize="small" />}
-                      {eval.status}
+                      {evalu.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <Score className="mr-1 text-gray-600" />
                       <span className={`font-medium ${
-                        eval.overallScore >= 90 ? 'text-green-600' :
-                        eval.overallScore >= 75 ? 'text-blue-600' :
+                        evalu.overallScore >= 90 ? 'text-green-600' :
+                        evalu.overallScore >= 75 ? 'text-blue-600' :
                         'text-yellow-600'
                       }`}>
-                        {eval.overallScore}/100
+                        {evalu.overallScore}/100
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {eval.deadline}
+                    {evalu.deadline}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button 
                         className="text-indigo-600 hover:text-indigo-900"
-                        onClick={() => handleAssignEvaluator(eval.id)}
+                        onClick={() => handleAssignEvaluator(evalu.id)}
                         title="Assign Evaluator"
                       >
                         <AssignmentInd />
                       </button>
                       <button 
                         className="text-gray-600 hover:text-gray-900"
-                        onClick={() => handleViewDetails(eval.id)}
+                        onClick={() => handleViewDetails(evalu.id)}
                         title="View Details"
                       >
                         <Checklist />
@@ -204,12 +199,8 @@ const EvaluationManagement = () => {
             </tbody>
           </table>
         </div>
-        
-        {filteredEvaluations.length === 0 && (
-          <div className="p-8 text-center text-gray-500">
-            No evaluations found matching your criteria
-          </div>
-        )}
+        </>
+      )}
         
         <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
           <div className="text-sm text-gray-500">
