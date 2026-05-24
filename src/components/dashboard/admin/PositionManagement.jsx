@@ -52,8 +52,10 @@ const PositionManagement = () => {
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [collegeFilter, setCollegeFilter] = useState('all');
   const [departmentFilter, setDepartmentFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [filterDepartments, setFilterDepartments] = useState([]);
 
   const user = auth?.user;
   // Form state
@@ -73,18 +75,24 @@ const PositionManagement = () => {
   const [availableDepartments, setAvailableDepartments] = useState([]);
   
   const colleges = getColleges();
-  const departments = getColleges(); // For filtering, we use colleges
 
   const positionTypes = ['Full-Time', 'Part-Time', 'Contract', 'Temporary'];
 
   // Filter positions based on search and filters
   const filteredPositions = positions.filter(position => {
     const matchesSearch = position.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCollege = collegeFilter === 'all' || position.college === collegeFilter;
     const matchesDepartment = departmentFilter === 'all' || position.department === departmentFilter;
     const matchesStatus = statusFilter === 'all' || position.status === statusFilter;
-
-    return matchesSearch && matchesDepartment && matchesStatus;
+    return matchesSearch && matchesCollege && matchesDepartment && matchesStatus;
   });
+
+  const handleCollegeFilterChange = (e) => {
+    const selected = e.target.value;
+    setCollegeFilter(selected);
+    setDepartmentFilter('all');
+    setFilterDepartments(selected === 'all' ? [] : getDepartments(selected));
+  };
 
   const handleAddCriteria = () => {
     if (newCriteria.trim()) {
@@ -202,12 +210,11 @@ const PositionManagement = () => {
   };
 
   const getDepartmentColor = (dept) => {
-    // Generate a consistent color based on department name
     const colors = [
       '#4e79a7', '#f28e2b', '#e15759', '#76b7b2', '#59a14f',
       '#edc948', '#b07aa1', '#ff9da7', '#9c755f', '#bab0ac'
     ];
-    const index = departments.indexOf(dept) % colors.length;
+    const index = Math.abs(dept.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % colors.length;
     return colors[index];
   };
 
@@ -290,8 +297,24 @@ const PositionManagement = () => {
               variant="outlined"
             />
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={2}>
             <FormControl fullWidth>
+              <InputLabel>College</InputLabel>
+              <Select
+                label="College"
+                value={collegeFilter}
+                onChange={handleCollegeFilterChange}
+                sx={{ borderRadius: 2 }}
+              >
+                <MenuItem value="all">All Colleges</MenuItem>
+                {colleges.map(c => (
+                  <MenuItem key={c} value={c}>{c}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={6} md={2}>
+            <FormControl fullWidth disabled={collegeFilter === 'all'}>
               <InputLabel>Department</InputLabel>
               <Select
                 label="Department"
@@ -300,13 +323,13 @@ const PositionManagement = () => {
                 sx={{ borderRadius: 2 }}
               >
                 <MenuItem value="all">All Departments</MenuItem>
-                {departments.map(dept => (
-                  <MenuItem key={dept} value={dept}>{getDepartmentLabel(dept)}</MenuItem>
+                {filterDepartments.map(dept => (
+                  <MenuItem key={dept} value={dept}>{dept}</MenuItem>
                 ))}
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={6} md={3}>
+          <Grid item xs={6} md={2}>
             <FormControl fullWidth>
               <InputLabel>Status</InputLabel>
               <Select
@@ -328,7 +351,9 @@ const PositionManagement = () => {
               fullWidth
               onClick={() => {
                 setSearchTerm('');
+                setCollegeFilter('all');
                 setDepartmentFilter('all');
+                setFilterDepartments([]);
                 setStatusFilter('all');
               }}
               sx={{ height: '56px', borderRadius: 2 }}
