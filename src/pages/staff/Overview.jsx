@@ -58,7 +58,7 @@
 //     switch (status) {
 //       case 'applied': return 'bg-blue-500';
 //       case 'under_review': return 'bg-yellow-500';
-//       case 'accepted': return 'bg-green-500';
+//       case 'accepted': return 'bg-[#7B1113]';
 //       case 'rejected': return 'bg-red-500';
 //       default: return 'bg-gray-500';
 //     }
@@ -215,7 +215,7 @@ const newPositions = positions.filter(pos => !appliedPositionIds.includes(pos._i
     switch (status) {
       case 'applied': return 'bg-blue-500';
       case 'under_review': return 'bg-yellow-500';
-      case 'accepted': return 'bg-green-500';
+      case 'accepted': return 'bg-[#7B1113]';
       case 'rejected': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
@@ -228,7 +228,7 @@ const newPositions = positions.filter(pos => !appliedPositionIds.includes(pos._i
   return (
     <div className="max-w-6xl mx-auto py-8">
       {/* Header */}
-      <div className="bg-green-600 text-white p-4 rounded-lg mb-6">
+      <div className="bg-[#7B1113] text-white p-4 rounded-lg mb-6">
         <h1 className="text-2xl font-semibold">
           Welcome back, {user ? user.fullName : 'John Doe'}!
         </h1>

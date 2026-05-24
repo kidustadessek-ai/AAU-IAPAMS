@@ -235,7 +235,7 @@ const handleSave = () => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7B1113]"></div>
           </div>
           <p className="text-center text-gray-600">Loading profile data...</p>
         </div>
@@ -262,31 +262,31 @@ const handleSave = () => {
 
               <div className="flex border-b mb-6">
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'basic' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500'}`}
+                  className={`py-2 px-4 font-medium ${activeTab === 'basic' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab('basic')}
                 >
                   Basic Info
                 </button>
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'education' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500'}`}
+                  className={`py-2 px-4 font-medium ${activeTab === 'education' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab('education')}
                 >
                   Education
                 </button>
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'experience' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500'}`}
+                  className={`py-2 px-4 font-medium ${activeTab === 'experience' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab('experience')}
                 >
                   Experience
                 </button>
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'skills' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500'}`}
+                  className={`py-2 px-4 font-medium ${activeTab === 'skills' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab('skills')}
                 >
                   Skills
                 </button>
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'social' ? 'text-green-600 border-b-2 border-green-600' : 'text-gray-500'}`}
+                  className={`py-2 px-4 font-medium ${activeTab === 'social' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab('social')}
                 >
                   Social & Links
@@ -297,7 +297,7 @@ const handleSave = () => {
                 <div className="space-y-4">
                   <div className="flex flex-col items-center mb-6">
                     <div className="relative mb-2">
-                      <div className="w-24 h-24 rounded-full bg-green-100 flex items-center justify-center text-green-600 mb-2 overflow-hidden">
+                      <div className="w-24 h-24 rounded-full bg-[#fdf0f0] flex items-center justify-center text-[#7B1113] mb-2 overflow-hidden">
                         {profilePhoto ? (
                           <img
                             src={profilePhoto}
@@ -308,7 +308,7 @@ const handleSave = () => {
                           <FiUser size={32} />
                         )}
                       </div>
-                      <label className="absolute bottom-0 right-0 bg-green-500 text-white p-1.5 rounded-full cursor-pointer hover:bg-green-600">
+                      <label className="absolute bottom-0 right-0 bg-[#7B1113] text-white p-1.5 rounded-full cursor-pointer hover:bg-[#7B1113]">
                         <FiUpload size={18} />
                         <input
                           type="file"
@@ -329,7 +329,7 @@ const handleSave = () => {
                         value={userData.fullName || ''}
                         name='fullName'
                         onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       />
                     </div>
 
@@ -340,7 +340,7 @@ const handleSave = () => {
                         value={userData.username || ''}
                         name='username'
                         onChange={(e) => setUserData({ ...userData, username: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                         disabled
                       />
                     </div>
@@ -352,7 +352,7 @@ const handleSave = () => {
                         value={userData.email || ''}
                         name='email'
                         onChange={(e) => setUserData({ ...userData, email: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       />
                     </div>
 
@@ -363,7 +363,7 @@ const handleSave = () => {
                         value={userData.phone || ''}
                         name='phone'
                         onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       />
                     </div>
 
@@ -374,7 +374,7 @@ const handleSave = () => {
                         value={userData.department || ''}
                         name='department'
                         onChange={(e) => setUserData({ ...userData, department: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       />
                     </div>
 
@@ -385,7 +385,7 @@ const handleSave = () => {
                         value={userData.positionType || ''}
                         name='positionType'
                         onChange={(e) => setUserData({ ...userData, positionType: e.target.value })}
-                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                        className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       />
                     </div>
                   </div>
@@ -397,7 +397,7 @@ const handleSave = () => {
                       name='bio'
                       onChange={(e) => setUserData({ ...userData, bio: e.target.value })}
                       rows={3}
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                       placeholder="Tell us about yourself..."
                     />
                   </div>
@@ -409,7 +409,7 @@ const handleSave = () => {
                       name='address'
                       onChange={(e) => setUserData({ ...userData, address: e.target.value })}
                       rows={2}
-                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full border border-gray-300 rounded-md p-2 focus:ring-[#7B1113] focus:border-[#7B1113]"
                     />
                   </div>
                 </div>
@@ -562,7 +562,7 @@ const handleSave = () => {
                     </div>
                     <button
                       onClick={handleAddEducation}
-                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Education
                     </button>
@@ -636,7 +636,7 @@ const handleSave = () => {
                               handleExperienceChange( index, 'current', e.target.checked)
                             }
 
-                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                            className="h-4 w-4 text-[#7B1113] focus:ring-[#7B1113] border-gray-300 rounded"
                           />
                           <label htmlFor={`current-${index}`} className="ml-2 block text-sm text-gray-700">
                             I currently work here
@@ -711,7 +711,7 @@ const handleSave = () => {
                             endDate: e.target.checked ? '' : newExperience.endDate
                           });
                         }}
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-[#7B1113] focus:ring-[#7B1113] border-gray-300 rounded"
                       />
                       <label htmlFor="current-new" className="ml-2 block text-sm text-gray-700">
                         I currently work here
@@ -728,7 +728,7 @@ const handleSave = () => {
                     </div>
                     <button
                       onClick={handleAddExperience}
-                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Experience
                     </button>
@@ -812,7 +812,7 @@ const handleSave = () => {
                     </div>
                     <button
                       onClick={handleAddSkill}
-                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Skill
                     </button>
@@ -920,7 +920,7 @@ const handleSave = () => {
                   onClick={handleSave}
                   type="button"
                   disabled={isSaving}
-                  className="px-4 py-2 bg-green-600 rounded-md text-sm font-medium text-white hover:bg-green-700"
+                  className="px-4 py-2 bg-[#7B1113] rounded-md text-sm font-medium text-white hover:bg-[#5a0d0f]"
                 >
                   {isSaving ? 'Saving...' : 'Save Changes'}
 

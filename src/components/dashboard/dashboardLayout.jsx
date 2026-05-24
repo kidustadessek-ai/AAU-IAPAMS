@@ -11,7 +11,7 @@ export const DashboardLayout = ({
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <motion.nav className="bg-green-600 p-4 shadow-lg">
+      <motion.nav className="bg-[#7B1113] p-4 shadow-lg">
         {/* Header content */}
       </motion.nav>
 

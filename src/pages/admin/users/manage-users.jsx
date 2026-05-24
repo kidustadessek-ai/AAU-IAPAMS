@@ -185,7 +185,7 @@ export default function Users({ searchParams }) {
             
             <Button startIcon={<PlusIcon />} variant="contained" 
             sx={{
-                backgroundColor: 'green',
+                backgroundColor: '#7B1113',
                 opacity:'0.8'
             }}
             onClick={() => handleOpenModal(defaultUser)}>

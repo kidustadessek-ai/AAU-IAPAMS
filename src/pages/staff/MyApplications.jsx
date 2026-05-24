@@ -69,7 +69,7 @@ const MyApplications = () => {
     <Container maxWidth="xl" sx={{ py: 4 }}>
       {/* Header */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" component="h1" fontWeight="bold" color="green">
+        <Typography variant="h4" component="h1" fontWeight="bold" sx={{ color: '#7B1113' }}>
           My Applications
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">

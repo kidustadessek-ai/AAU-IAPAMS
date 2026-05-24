@@ -93,11 +93,12 @@ export const getPosition = async (req, res) => {
 // @access  Private/Admin
 export const createPosition = async (req, res) => {
   try {
-    const { title, description, department, positionType, requirements, deadline, numberOfPositions, evaluators } = req.body;
+    const { title, description, college, department, positionType, requirements, deadline, numberOfPositions, evaluators } = req.body;
 
     const position = await Position.create({
       title,
       description,
+      college,
       department,
       positionType,
       requirements: Array.isArray(requirements) ? requirements : [],
