@@ -1,9 +1,7 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { api } from '../utils/api';
 
-
-const AuthContext = createContext();
+export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState(() => {
@@ -15,65 +13,21 @@ export const AuthProvider = ({ children }) => {
     };
   });
 
-  // const login = async (username, password) => {
-  //   const res = await api.post('/auth/login', {
-  //     username,
-  //     password,
-  //   }).catch((error) => {
-  //     if (error.response) {
-  //       throw new Error(error.response.data.message || 'Login failed');
-  //     } else {
-  //       throw new Error('Network error. Please try again later.');
-  //     }
-      
-  //   });
+  const login = async (username, password) => {
+    const res = await api.post('/auth/login', { username, password }).catch((error) => {
+      throw new Error(error.response?.data?.message || 'Network error. Please try again later.');
+    });
 
-  //   const data = res.data;
-  //   if (!data) {
-  //     throw new Error('No response from server');
-  //   }
+    const { data } = res;
+    if (!data?.success) throw new Error(data?.message || 'Login failed');
 
-  //   if (data.success) {
-  //     const { user, tokens } = data.data;
-
-  //     localStorage.setItem('user', JSON.stringify(user));
-  //     localStorage.setItem('tokens', JSON.stringify(tokens));
-
-  //     setAuth({ user, tokens });
-  //   } else {
-  //     throw new Error(data.message || 'Login failed');
-  //   }
-  // };
-
-
-  // In AuthContext.js
-const login = async (username, password) => {
-  const res = await api.post('/auth/login', {
-    username,
-    password,
-  }).catch((error) => {
-    if (error.response) {
-      throw new Error(error.response.data.message || 'Login failed');
-    } else {
-      throw new Error('Network error. Please try again later.');
-    }
-  });
-
-  const data = res.data;
-  if (!data) {
-    throw new Error('No response from server');
-  }
-
-  if (data.success) {
     const { user, tokens } = data.data;
     localStorage.setItem('user', JSON.stringify(user));
     localStorage.setItem('tokens', JSON.stringify(tokens));
     setAuth({ user, tokens });
     return user;
-  } else {
-    throw new Error(data.message || 'Login failed');
-  }
-};
+  };
+
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('tokens');
@@ -89,8 +43,6 @@ const login = async (username, password) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
