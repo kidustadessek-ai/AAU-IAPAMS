@@ -40,6 +40,7 @@ import { api } from '../../../utils/api';
 import toast from 'react-hot-toast';
 import { createPosition, getPositions } from '../../../services/positionService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
+import { aauStructure, getColleges, getDepartments } from '../../../data/aauStructure';
 
 
 const PositionManagement = () => {
@@ -59,22 +60,22 @@ const PositionManagement = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    department: 'engineering',
-    positionType: 'senior',
+    college: '',
+    department: '',
+    positionType: 'Full-Time',
     requirements: [],
     deadline: '',
-    status: 'draft',
     evaluators: []
   });
-  const [evaluationCriteria, setEvaluationCriteria] = useState(['Technical Skills']);
+  const [evaluationCriteria, setEvaluationCriteria] = useState(['Academic Qualification']);
   const [newCriteria, setNewCriteria] = useState('');
-  const [evaluators, setEvaluators] = useState([])
-  const departments = [
-    'engineering', 'hr', 'finance', 'it', 'legal',
-    'research', 'product', 'quality', 'supply', 'procurement'
-  ];
+  const [evaluators, setEvaluators] = useState([]);
+  const [availableDepartments, setAvailableDepartments] = useState([]);
+  
+  const colleges = getColleges();
+  const departments = getColleges(); // For filtering, we use colleges
 
-  const positionTypes = ['dean', 'head', 'senior', 'junior'];
+  const positionTypes = ['Full-Time', 'Part-Time', 'Contract', 'Temporary'];
 
   // Filter positions based on search and filters
   const filteredPositions = positions.filter(position => {
@@ -94,10 +95,21 @@ const PositionManagement = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    
+    // If college changes, reset department and update available departments
+    if (name === 'college') {
+      setFormData({
+        ...formData,
+        college: value,
+        department: '' // Reset department when college changes
+      });
+      setAvailableDepartments(getDepartments(value));
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const getEvaluators = async () => {
@@ -143,9 +155,9 @@ const PositionManagement = () => {
         description: formData.description,
         department: formData.department,
         positionType: formData.positionType,
-        requirements: formData.requirements,
+        requirements: formData.requirements.filter(r => r.trim() !== ''),
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : null,
-        status: status === 'published' ? 'open' : 'draft',
+        status: 'open',
         evaluationCriteria: evaluationCriteria,
         createdBy: user._id,
         evaluators: formData.evaluators
@@ -162,13 +174,11 @@ const PositionManagement = () => {
       console.log('Position Payload:', positionPayload);
       const res = await createPosition(positionPayload, auth.tokens.accessToken);
       if (!res.success) {
-        throw new Error(res.error.message || 'Failed to create position');
+        throw new Error(res.error?.message || 'Failed to create position');
       }
 
-      setPositions([...positions, newPosition]);  
-      // await fetchPositions();
-
-      toast.success(`Position ${status === 'published' ? 'published' : 'saved as draft'} successfully!`);
+      await fetchPositions();
+      toast.success('Position published successfully!');
       setOpenModal(false);
       resetForm();
 
@@ -184,14 +194,15 @@ const PositionManagement = () => {
     setFormData({
       title: '',
       description: '',
-      department: 'engineering',
-      positionType: 'senior',
+      college: '',
+      department: '',
+      positionType: 'Full-Time',
       requirements: [],
       deadline: '',
-      status: 'draft',
       evaluators: []
     });
-    setEvaluationCriteria(['Technical Skills']);
+    setAvailableDepartments([]);
+    setEvaluationCriteria(['Academic Qualification']);
     setNewCriteria('');
   };
 
@@ -794,27 +805,49 @@ const PositionManagement = () => {
               />
             </Grid>
 
-            {/* Department */}
+            {/* College and Department */}
             <Grid item xs={12}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                3. Department
+                3. College and Department
               </Typography>
-              <FormControl fullWidth required>
-                <InputLabel>Department</InputLabel>
-                <Select
-                  name="department"
-                  value={formData.department}
-                  label="Department"
-                  onChange={handleInputChange}
-                  sx={{ borderRadius: 2 }}
-                >
-                  {departments.map(dept => (
-                    <MenuItem key={dept} value={dept}>
-                      {getDepartmentLabel(dept)}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth required>
+                    <InputLabel>College</InputLabel>
+                    <Select
+                      name="college"
+                      value={formData.college}
+                      label="College"
+                      onChange={handleInputChange}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {colleges.map(college => (
+                        <MenuItem key={college} value={college}>
+                          {college}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth required disabled={!formData.college}>
+                    <InputLabel>Department</InputLabel>
+                    <Select
+                      name="department"
+                      value={formData.department}
+                      label="Department"
+                      onChange={handleInputChange}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      {availableDepartments.map(dept => (
+                        <MenuItem key={dept} value={dept}>
+                          {dept}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
             </Grid>
 
             {/* Requirements */}
