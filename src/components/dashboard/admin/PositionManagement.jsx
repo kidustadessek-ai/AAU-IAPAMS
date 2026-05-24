@@ -30,6 +30,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Autocomplete,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -819,28 +820,71 @@ const PositionManagement = () => {
               </Grid>
             </Box>
 
-            {/* Section: Location */}
+            {/* Section: College & Department */}
             <Box sx={{ mb: 3 }}>
-              <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
-                College & Department
-              </Typography>
-              <Divider sx={{ mt: 0.5, mb: 2, borderColor: '#e2e8f0' }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth size="small" required>
-                    <InputLabel>College</InputLabel>
-                    <Select name="college" value={formData.college} label="College" onChange={handleInputChange}>
-                      {colleges.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-                    </Select>
-                  </FormControl>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                <Box sx={{ width: 3, height: 18, bgcolor: '#7B1113', borderRadius: 1 }} />
+                <Typography variant="overline" sx={{ color: '#7B1113', fontWeight: 700, letterSpacing: 1.2, fontSize: '0.7rem' }}>
+                  College &amp; Department
+                </Typography>
+              </Box>
+              <Divider sx={{ mb: 2.5, borderColor: '#e2e8f0' }} />
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Autocomplete
+                    options={colleges}
+                    value={formData.college || null}
+                    onChange={(_, newValue) => {
+                      setFormData({ ...formData, college: newValue || '', department: '' });
+                      setAvailableDepartments(newValue ? getDepartments(newValue) : []);
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="College"
+                        required
+                        placeholder="Search or select a college..."
+                        helperText="Type to search through AAU colleges"
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} sx={{ py: 1.5, borderBottom: '1px solid #f1f5f9' }}>
+                        <Box>
+                          <Typography variant="body2" fontWeight={500}>{option}</Typography>
+                        </Box>
+                      </Box>
+                    )}
+                    isOptionEqualToValue={(option, value) => option === value}
+                    noOptionsText="No colleges found"
+                    clearOnEscape
+                  />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth size="small" required disabled={!formData.college}>
-                    <InputLabel>Department</InputLabel>
-                    <Select name="department" value={formData.department} label="Department" onChange={handleInputChange}>
-                      {availableDepartments.map(d => <MenuItem key={d} value={d}>{d}</MenuItem>)}
-                    </Select>
-                  </FormControl>
+                <Grid item xs={12}>
+                  <Autocomplete
+                    options={availableDepartments}
+                    value={formData.department || null}
+                    disabled={!formData.college}
+                    onChange={(_, newValue) => {
+                      setFormData({ ...formData, department: newValue || '' });
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Department"
+                        required
+                        placeholder={formData.college ? 'Search or select a department...' : 'Select a college first'}
+                        helperText={formData.college ? `${availableDepartments.length} departments available` : 'Select a college to see departments'}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <Box component="li" {...props} sx={{ py: 1.2, borderBottom: '1px solid #f1f5f9' }}>
+                        <Typography variant="body2">{option}</Typography>
+                      </Box>
+                    )}
+                    isOptionEqualToValue={(option, value) => option === value}
+                    noOptionsText="No departments found"
+                    clearOnEscape
+                  />
                 </Grid>
               </Grid>
             </Box>
