@@ -6,6 +6,7 @@ import {
   forgotPassword,
   resetPassword,
   changePassword,
+  refreshAccessToken,
   getUsers,
   updateUser,
   deleteUsers,
@@ -20,6 +21,7 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+router.post('/refresh-token', refreshAccessToken);
 
 // Protected routes
 router.get('/me', authenticate, getMe);
@@ -27,7 +29,7 @@ router.patch('/change-password', authenticate, changePassword);
 
 // Admin routes
 router.get('/users', authenticate, authorize('admin'), getUsers);
-router.patch('/users/:id', authenticate, uploadProfilePhoto, handleMulterError, updateUser);
+router.patch('/users/:id', authenticate, authorize('admin'), uploadProfilePhoto, handleMulterError, updateUser);
 router.delete('/users', authenticate, authorize('admin'), deleteUsers);
 
 export default router;

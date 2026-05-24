@@ -7,123 +7,76 @@ import Position from '../models/Position.js';
 // @access  Private/Admin
 export const getUserStats = async (req, res) => {
   try {
-    // Total users by role
-    const totalUsers = await User.countDocuments();
-    const adminCount = await User.countDocuments({ role: 'admin' });
-    const staffCount = await User.countDocuments({ role: 'staff' });
-    const evaluatorCount = await User.countDocuments({ role: 'evaluator' });
-
-    // Active vs inactive users
-    const activeUsers = await User.countDocuments({ status: 'active' });
-    const inactiveUsers = await User.countDocuments({ status: 'inactive' });
-    const suspendedUsers = await User.countDocuments({ status: 'suspended' });
-
-    // Total positions
-    const totalPositions = await Position.countDocuments();
-    const openPositions = await Position.countDocuments({ status: 'open' });
-    const closedPositions = await Position.countDocuments({ status: 'closed' });
-    const filledPositions = await Position.countDocuments({ status: 'filled' });
-
-    // Total applications
-    const totalApplications = await Application.countDocuments();
-    const pendingApplications = await Application.countDocuments({ status: 'pending' });
-    const underReviewApplications = await Application.countDocuments({ status: 'under_review' });
-    const shortlistedApplications = await Application.countDocuments({ status: 'shortlisted' });
-    const rejectedApplications = await Application.countDocuments({ status: 'rejected' });
-    const acceptedApplications = await Application.countDocuments({ status: 'accepted' });
-
-    // Recent registrations (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentRegistrations = await User.countDocuments({
-      createdAt: { $gte: thirtyDaysAgo },
-    });
-
-    // Applications by department
-    const applicationsByDepartment = await Position.aggregate([
-      {
-        $lookup: {
-          from: 'applications',
-          localField: '_id',
-          foreignField: 'position',
-          as: 'applications',
-        },
-      },
-      {
-        $group: {
-          _id: '$department',
-          count: { $sum: { $size: '$applications' } },
-        },
-      },
-      {
-        $sort: { count: -1 },
-      },
-    ]);
-
-    // Applications over time (last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const applicationsOverTime = await Application.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: sixMonthsAgo },
-        },
-      },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' },
+    const [userStats, positionStats, applicationStats, applicationsByDepartment, applicationsOverTime] =
+      await Promise.all([
+        User.aggregate([
+          {
+            $facet: {
+              byRole: [{ $group: { _id: '$role', count: { $sum: 1 } } }],
+              byStatus: [{ $group: { _id: '$status', count: { $sum: 1 } } }],
+              recent: [{ $match: { createdAt: { $gte: thirtyDaysAgo } } }, { $count: 'count' }],
+            },
           },
-          count: { $sum: 1 },
-        },
-      },
-      {
-        $sort: { '_id.year': 1, '_id.month': 1 },
-      },
-    ]);
+        ]),
+        Position.aggregate([
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]),
+        Application.aggregate([
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]),
+        Position.aggregate([
+          { $lookup: { from: 'applications', localField: '_id', foreignField: 'position', as: 'applications' } },
+          { $group: { _id: '$department', count: { $sum: { $size: '$applications' } } } },
+          { $sort: { count: -1 } },
+        ]),
+        Application.aggregate([
+          { $match: { createdAt: { $gte: sixMonthsAgo } } },
+          { $group: { _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } }, count: { $sum: 1 } } },
+          { $sort: { '_id.year': 1, '_id.month': 1 } },
+        ]),
+      ]);
+
+    const toMap = (arr) => arr.reduce((acc, { _id, count }) => ({ ...acc, [_id]: count }), {});
+
+    const roleMap = toMap(userStats[0].byRole);
+    const statusMap = toMap(userStats[0].byStatus);
+    const posMap = toMap(positionStats);
+    const appMap = toMap(applicationStats);
 
     res.json({
       success: true,
       data: {
         users: {
-          total: totalUsers,
-          byRole: {
-            admin: adminCount,
-            staff: staffCount,
-            evaluator: evaluatorCount,
-          },
-          byStatus: {
-            active: activeUsers,
-            inactive: inactiveUsers,
-            suspended: suspendedUsers,
-          },
-          recentRegistrations,
+          total: Object.values(roleMap).reduce((a, b) => a + b, 0),
+          byRole: { admin: roleMap.admin || 0, staff: roleMap.staff || 0, evaluator: roleMap.evaluator || 0 },
+          byStatus: { active: statusMap.active || 0, inactive: statusMap.inactive || 0, suspended: statusMap.suspended || 0 },
+          recentRegistrations: userStats[0].recent[0]?.count || 0,
         },
         positions: {
-          total: totalPositions,
-          open: openPositions,
-          closed: closedPositions,
-          filled: filledPositions,
+          total: Object.values(posMap).reduce((a, b) => a + b, 0),
+          open: posMap.open || 0,
+          closed: posMap.closed || 0,
+          filled: posMap.filled || 0,
         },
         applications: {
-          total: totalApplications,
-          pending: pendingApplications,
-          underReview: underReviewApplications,
-          shortlisted: shortlistedApplications,
-          rejected: rejectedApplications,
-          accepted: acceptedApplications,
+          total: Object.values(appMap).reduce((a, b) => a + b, 0),
+          pending: appMap.pending || 0,
+          underReview: appMap.under_review || 0,
+          shortlisted: appMap.shortlisted || 0,
+          rejected: appMap.rejected || 0,
+          accepted: appMap.accepted || 0,
           byDepartment: applicationsByDepartment,
           overTime: applicationsOverTime,
         },
       },
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

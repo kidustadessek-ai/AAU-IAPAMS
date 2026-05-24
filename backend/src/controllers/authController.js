@@ -1,8 +1,7 @@
 import User from '../models/User.js';
-import { generateAccessToken, generateRefreshToken, generateResetToken, verifyResetToken } from '../utils/token.js';
+import { generateAccessToken, generateRefreshToken, generateResetToken, verifyResetToken, verifyRefreshToken } from '../utils/token.js';
 import { sendPasswordResetEmail, sendWelcomeEmail } from '../utils/email.js';
 import { uploadToCloudinary } from '../utils/upload.js';
-import bcrypt from 'bcryptjs';
 
 // @desc    Register new user
 // @route   POST /api/v1/auth/register
@@ -20,13 +19,16 @@ export const register = async (req, res) => {
       });
     }
 
+    // Only admin can assign roles other than staff
+    const assignedRole = req.user?.role === 'admin' ? (role || 'staff') : 'staff';
+
     // Create user
     const user = await User.create({
       username,
       email,
       password,
       fullName,
-      role: role || 'staff',
+      role: assignedRole,
       department,
       phone,
     });
@@ -239,6 +241,44 @@ export const resetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// @desc    Refresh access token
+// @route   POST /api/v1/auth/refresh-token
+// @access  Public
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Refresh token is required',
+      });
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    const user = await User.findById(decoded.userId);
+
+    if (!user || user.status !== 'active') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid refresh token',
+      });
+    }
+
+    const accessToken = generateAccessToken(user._id);
+
+    res.json({
+      success: true,
+      data: { accessToken },
+    });
+  } catch (error) {
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired refresh token',
     });
   }
 };

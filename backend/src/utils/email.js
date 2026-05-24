@@ -1,22 +1,19 @@
 import nodemailer from 'nodemailer';
 
-// Create transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: process.env.EMAIL_PORT,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-};
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 export const sendPasswordResetEmail = async (email, resetToken) => {
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-  const mailOptions = {
+  await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
     subject: 'Password Reset Request - AAU IAPAMS',
@@ -32,42 +29,27 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
         <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
       </div>
     `,
-  };
-
-  try {
-    const transporter = createTransporter();
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Password reset email sent to:', email);
-    return true;
-  } catch (error) {
-    console.error('❌ Email send error:', error);
-    throw new Error('Failed to send password reset email');
-  }
+  });
 };
 
 export const sendWelcomeEmail = async (email, username) => {
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to: email,
-    subject: 'Welcome to AAU IAPAMS',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2e7d32;">Welcome to AAU IAPAMS!</h2>
-        <p>Hello ${username},</p>
-        <p>Your account has been successfully created for the Addis Ababa University Internal Academic Position Appointment Management System.</p>
-        <p>You can now log in and start using the system.</p>
-        <a href="${process.env.FRONTEND_URL}/login" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Go to Login</a>
-        <p style="color: #999; font-size: 12px; margin-top: 30px;">If you have any questions, please contact the administrator.</p>
-      </div>
-    `,
-  };
-
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email sent to:', email);
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: email,
+      subject: 'Welcome to AAU IAPAMS',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #2e7d32;">Welcome to AAU IAPAMS!</h2>
+          <p>Hello ${username},</p>
+          <p>Your account has been successfully created for the Addis Ababa University Internal Academic Position Appointment Management System.</p>
+          <p>You can now log in and start using the system.</p>
+          <a href="${process.env.FRONTEND_URL}/login" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Go to Login</a>
+          <p style="color: #999; font-size: 12px; margin-top: 30px;">If you have any questions, please contact the administrator.</p>
+        </div>
+      `,
+    });
   } catch (error) {
-    console.error('❌ Welcome email error:', error);
-    // Don't throw error for welcome email
+    // Non-critical — do not throw
   }
 };
