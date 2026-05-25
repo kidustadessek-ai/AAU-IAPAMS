@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { FiPlus, FiSearch, FiFilter, FiGrid, FiList, FiTrash2, FiEye, FiX, FiCalendar, FiUsers } from 'react-icons/fi';
+import { FiPlus, FiSearch, FiFilter, FiGrid, FiList, FiTrash2, FiEye, FiX, FiCalendar, FiUsers, FiEdit2 } from 'react-icons/fi';
 import { useAuth } from '../../../context/authContext';
 import toast from 'react-hot-toast';
-import { createPosition, getPositions, deletePosition, closePosition } from '../../../services/positionService';
+import { createPosition, getPositions, deletePosition, closePosition, updatePosition } from '../../../services/positionService';
 import { getApplicationsByPosition, updateApplicationStatus } from '../../../services/applicationService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 import { getColleges, getDepartments } from '../../../data/aauStructure';
@@ -27,6 +27,8 @@ const PositionManagement = () => {
   const [applicants, setApplicants] = useState([]);
   const [applicantsLoading, setApplicantsLoading] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingPosition, setEditingPosition] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -108,18 +110,24 @@ const PositionManagement = () => {
         evaluators: formData.evaluators
       };
 
-      const res = await createPosition(positionPayload);
+      let res;
+      if (isEditing && editingPosition) {
+        res = await updatePosition(editingPosition._id, positionPayload);
+      } else {
+        res = await createPosition(positionPayload);
+      }
+
       if (!res.success) {
-        throw new Error(res.error?.message || 'Failed to create position');
+        throw new Error(res.error?.message || `Failed to ${isEditing ? 'update' : 'create'} position`);
       }
 
       await fetchPositions();
-      toast.success('Position published successfully!');
+      toast.success(`Position ${isEditing ? 'updated' : 'published'} successfully!`);
       setOpenModal(false);
       resetForm();
 
     } catch (error) {
-      toast.error(error.message || 'Failed to create position');
+      toast.error(error.message || `Failed to ${isEditing ? 'update' : 'create'} position`);
     } finally {
       setIsLoading(false);
     }
@@ -137,6 +145,10 @@ const PositionManagement = () => {
       evaluators: []
     });
     setAvailableDepartments([]);
+    setIsEditing(false);
+    setEditingPosition(null);
+    setCollegeSearch('');
+    setDeptSearch('');
   };
 
   const handlePositionClick = (position) => {
@@ -149,15 +161,46 @@ const PositionManagement = () => {
     setDeleteTarget(position);
   };
 
+  const handleEditClick = (e, position) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    setEditingPosition(position);
+    setFormData({
+      title: position.title,
+      description: position.description,
+      college: position.college,
+      department: position.department,
+      positionType: position.positionType,
+      requirements: position.requirements || [],
+      deadline: position.deadline ? new Date(position.deadline).toISOString().split('T')[0] : '',
+      evaluators: position.evaluators?.map(e => e._id || e) || []
+    });
+    setAvailableDepartments(getDepartments(position.college));
+    setCollegeSearch(position.college);
+    setDeptSearch(position.department);
+    setOpenModal(true);
+  };
+
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
+      // Check if position has applications
+      const appsRes = await getApplicationsByPosition(deleteTarget._id);
+      const applicationCount = appsRes.success ? appsRes.data.length : 0;
+      
+      if (applicationCount > 0) {
+        toast.error(`Cannot delete position with ${applicationCount} existing application(s)`);
+        setIsDeleting(false);
+        return;
+      }
+
       // If position is open, close it first before deleting
       if (deleteTarget.status === 'open') {
         const closeRes = await closePosition(deleteTarget._id);
         if (!closeRes.success) throw new Error('Failed to close position before deletion');
       }
+      
       const res = await deletePosition(deleteTarget._id);
       if (!res.success) throw new Error(res.error?.message || 'Failed to delete position');
       toast.success('Position deleted successfully!');
@@ -448,6 +491,16 @@ const PositionManagement = () => {
                       <FiEye size={12} /> View
                     </button>
                     <button
+                      onClick={(e) => handleEditClick(e, pos)}
+                      style={{
+                        padding: '4px 10px', borderRadius: 6, border: 'none',
+                        background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', fontWeight: 600,
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                      }}
+                    >
+                      <FiEdit2 size={12} /> Edit
+                    </button>
+                    <button
                       onClick={(e) => handleDeleteClick(e, pos)}
                       style={{
                         padding: '4px 10px', borderRadius: 6, border: 'none',
@@ -542,6 +595,16 @@ const PositionManagement = () => {
                     }}
                   >
                     <FiEye size={12} /> View
+                  </button>
+                  <button
+                    onClick={(e) => handleEditClick(e, pos)}
+                    style={{
+                      padding: '4px 10px', borderRadius: 6, border: 'none',
+                      background: '#fef3c7', color: '#92400e', fontSize: '0.7rem', fontWeight: 600,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                    }}
+                  >
+                    <FiEdit2 size={12} /> Edit
                   </button>
                   <button
                     onClick={(e) => handleDeleteClick(e, pos)}
@@ -704,8 +767,12 @@ const PositionManagement = () => {
             {/* Header */}
             <div style={{ background: '#7B1113', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0, lineHeight: 1.3 }}>Post New Position</h2>
-                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', margin: '4px 0 0' }}>Fill in the details below</p>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#fff', margin: 0, lineHeight: 1.3 }}>
+                  {isEditing ? 'Edit Position' : 'Post New Position'}
+                </h2>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', margin: '4px 0 0' }}>
+                  {isEditing ? 'Update position details' : 'Fill in the details below'}
+                </p>
               </div>
               <button
                 onClick={() => { setOpenModal(false); resetForm(); }}
@@ -983,7 +1050,7 @@ const PositionManagement = () => {
                     }} />
                     Publishing...
                   </>
-                ) : 'Publish Position'}
+                ) : isEditing ? 'Update Position' : 'Publish Position'}
               </button>
             </div>
           </div>
@@ -1009,10 +1076,10 @@ const PositionManagement = () => {
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#dc2626', margin: 0 }}>Delete Position</h3>
             </div>
             <div style={{ padding: '20px 24px' }}>
-              {deleteTarget.applicationCount > 0 ? (
+              {deleteTarget.applicants > 0 ? (
                 <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 12 }}>
                   <p style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 600, margin: 0 }}>
-                    ✕ Cannot delete — this position has {deleteTarget.applicationCount} existing application(s). Remove all applications first.
+                    ✕ Cannot delete — this position has {deleteTarget.applicants} existing application(s). Remove all applications first.
                   </p>
                 </div>
               ) : deleteTarget.status === 'open' ? (
@@ -1040,12 +1107,12 @@ const PositionManagement = () => {
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                disabled={isDeleting || deleteTarget.applicationCount > 0}
+                disabled={isDeleting || (deleteTarget.applicants > 0)}
                 style={{
                   padding: '8px 16px', borderRadius: 8, border: 'none',
-                  background: (isDeleting || deleteTarget.applicationCount > 0) ? '#fca5a5' : '#dc2626',
+                  background: (isDeleting || (deleteTarget.applicants > 0)) ? '#fca5a5' : '#dc2626',
                   color: '#fff', fontSize: '0.8rem', fontWeight: 600,
-                  cursor: (isDeleting || deleteTarget.applicationCount > 0) ? 'not-allowed' : 'pointer',
+                  cursor: (isDeleting || (deleteTarget.applicants > 0)) ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}
               >
