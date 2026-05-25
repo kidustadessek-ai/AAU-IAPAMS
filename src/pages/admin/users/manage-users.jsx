@@ -112,13 +112,24 @@ export default function Users({ searchParams }) {
       formatter: (row) => (
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: 8, background: '#7B1113',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.75rem', fontWeight: 700, color: '#fff',
-            }}>
-              {row.fullName?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            {row.profilePhoto ? (
+              <img
+                src={row.profilePhoto}
+                alt={row.fullName}
+                style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  objectFit: 'cover',
+                }}
+              />
+            ) : (
+              <div style={{
+                width: 32, height: 32, borderRadius: 8, background: '#7B1113',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.75rem', fontWeight: 700, color: '#fff',
+              }}>
+                {row.fullName?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
             <div>
               <p style={{ margin: 0, fontSize: '0.85rem', fontWeight: 600, color: '#1a1a2e', lineHeight: 1.3 }}>
                 {row.fullName}

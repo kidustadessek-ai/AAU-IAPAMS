@@ -63,6 +63,7 @@ const ApplicationManagement = () => {
         id: app._id,
         name: app.applicant?.fullName || app.applicant?.username || 'Unknown',
         email: app.applicant?.email || '—',
+        profilePhoto: app.applicant?.profilePhoto || null,
         position: app.position?.title || '—',
         college: app.position?.college || '—',
         department: app.position?.department || '—',
@@ -297,14 +298,25 @@ const ApplicationManagement = () => {
                   {/* Applicant */}
                   <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{
-                        width: 32, height: 32, borderRadius: '50%',
-                        background: '#fdf0f0', color: '#7B1113',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
-                      }}>
-                        {app.name.charAt(0).toUpperCase()}
-                      </div>
+                      {app.profilePhoto ? (
+                        <img
+                          src={app.profilePhoto}
+                          alt={app.name}
+                          style={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            objectFit: 'cover', flexShrink: 0,
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          background: '#fdf0f0', color: '#7B1113',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                        }}>
+                          {app.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1a1a2e' }}>{app.name}</div>
                         <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{app.email}</div>

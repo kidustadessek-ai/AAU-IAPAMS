@@ -20,21 +20,32 @@ const EvaluationManagement = () => {
 
   const fetchEvaluations = async () => {
     try {
-      const res = await api.get('/applications', {
+      const res = await api.get('/applications?populate=applicant,position,evaluations.evaluator', {
         headers: { Authorization: `Bearer ${auth?.tokens?.accessToken}` }
       });
       const apps = res.data?.data || [];
-      setEvaluations(apps.map(app => ({
-        id: app._id,
-        applicant: app.applicant?.fullName || app.applicant?.username || 'Unknown',
-        position: app.position?.title || 'Unknown Position',
-        evaluators: app.evaluations?.map(e => e.evaluator?.fullName || 'Unknown') || [],
-        criteria: [],
-        status: app.evaluations?.length === 0 ? 'Pending' : 
-                app.status === 'shortlisted' ? 'Completed' : 'In Progress',
-        overallScore: Math.round(app.averageScore * 10) || 0,
-        deadline: app.position?.deadline ? new Date(app.position.deadline).toLocaleDateString() : 'N/A'
-      })));
+      setEvaluations(apps.map(app => {
+        const evaluationsData = app.evaluations?.map(e => ({
+          name: e.evaluator?.fullName || 'Unknown',
+          photo: e.evaluator?.profilePhoto || null,
+          scores: e.scores || { experience: 0, education: 0, skills: 0 },
+          avgScore: e.scores ? ((e.scores.experience + e.scores.education + e.scores.skills) / 3).toFixed(1) : '0.0',
+          comments: e.comments || '',
+          submittedAt: e.submittedAt ? new Date(e.submittedAt).toLocaleDateString() : 'N/A'
+        })) || [];
+
+        return {
+          id: app._id,
+          applicant: app.applicant?.fullName || app.applicant?.username || 'Unknown',
+          applicantPhoto: app.applicant?.profilePhoto || null,
+          position: app.position?.title || 'Unknown Position',
+          evaluators: evaluationsData,
+          status: app.evaluations?.length === 0 ? 'Pending' : 
+                  app.status === 'shortlisted' ? 'Completed' : 'In Progress',
+          overallScore: Math.round(app.averageScore * 10) || 0,
+          deadline: app.position?.deadline ? new Date(app.position.deadline).toLocaleDateString() : 'N/A'
+        };
+      }));
     } catch (error) {
       console.error('Fetch evaluations error:', error);
       setEvaluations([]);
@@ -184,13 +195,26 @@ const EvaluationManagement = () => {
                       >
                         <td style={{ padding: '12px 20px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <div style={{
-                              width: 32, height: 32, borderRadius: 8, background: '#7B1113',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '0.75rem', fontWeight: 700, color: '#fff',
-                            }}>
-                              {evalu.applicant.charAt(0).toUpperCase()}
-                            </div>
+                            {evalu.applicantPhoto ? (
+                              <img
+                                src={evalu.applicantPhoto}
+                                alt={evalu.applicant}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 8,
+                                  objectFit: 'cover',
+                                }}
+                              />
+                            ) : (
+                              <div style={{
+                                width: 32, height: 32, borderRadius: 8, background: '#7B1113',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '0.75rem', fontWeight: 700, color: '#fff',
+                              }}>
+                                {evalu.applicant.charAt(0).toUpperCase()}
+                              </div>
+                            )}
                             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a2e' }}>
                               {evalu.applicant}
                             </span>
@@ -200,21 +224,50 @@ const EvaluationManagement = () => {
                           {evalu.position}
                         </td>
                         <td style={{ padding: '12px 20px' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {evalu.evaluators.length === 0 ? (
                               <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>No evaluators assigned</span>
                             ) : (
                               evalu.evaluators.map((evaluator, idx) => (
-                                <span
+                                <div
                                   key={idx}
                                   style={{
-                                    fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px',
-                                    borderRadius: 4, background: '#fdf0f0', color: '#7B1113',
-                                    width: 'fit-content',
+                                    display: 'flex', alignItems: 'center', gap: 8,
+                                    padding: '6px 8px', borderRadius: 6,
+                                    background: '#fdf9f9', border: '1px solid #f0eded',
                                   }}
                                 >
-                                  {evaluator}
-                                </span>
+                                  {evaluator.photo ? (
+                                    <img
+                                      src={evaluator.photo}
+                                      alt={evaluator.name}
+                                      style={{
+                                        width: 24, height: 24, borderRadius: 4,
+                                        objectFit: 'cover',
+                                      }}
+                                    />
+                                  ) : (
+                                    <div style={{
+                                      width: 24, height: 24, borderRadius: 4,
+                                      background: '#7B1113', display: 'flex',
+                                      alignItems: 'center', justifyContent: 'center',
+                                      fontSize: '0.65rem', fontWeight: 700, color: '#fff',
+                                    }}>
+                                      {evaluator.name.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: '#1a1a2e' }}>
+                                      {evaluator.name}
+                                    </div>
+                                    <div style={{ fontSize: '0.65rem', color: '#94a3b8', marginTop: 1 }}>
+                                      Score: <span style={{ fontWeight: 600, color: '#7B1113' }}>{evaluator.avgScore}/10</span>
+                                      {evaluator.submittedAt !== 'N/A' && (
+                                        <span style={{ marginLeft: 6 }}>• {evaluator.submittedAt}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
                               ))
                             )}
                           </div>

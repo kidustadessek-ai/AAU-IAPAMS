@@ -92,17 +92,36 @@ export const DashboardLayout = ({
       const result = await updateUserProfile(updatedData, token);
       
       if (result.success) {
+        // Update local state
         setUserData(prev => ({
           ...updatedData,
           profilePhotoFile: null
         }));
         
+        // Update profile photo state
         if (result.data?.profilePhoto) {
           setProfilePhoto(result.data.profilePhoto);
         }
+
+        // Update localStorage with new user data
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          const updatedUser = {
+            ...user,
+            ...result.data
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+
+        // Trigger a page reload to refresh all components with new user data
+        window.location.reload();
         
-        setIsEditingProfile(false);
         toast.success('Profile updated successfully');
+      } else {
+        const errorMsg = result.error?.message || 'Failed to update profile';
+        console.error('Update failed:', result.error);
+        toast.error(errorMsg);
       }
     } catch (error) {
       console.error('Failed to update profile:', error);

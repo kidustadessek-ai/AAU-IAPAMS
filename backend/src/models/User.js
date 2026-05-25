@@ -63,6 +63,35 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    education: [
+      {
+        institution: String,
+        degree: String,
+        fieldOfStudy: String,
+        startYear: Number,
+        endYear: Number,
+        description: String,
+      },
+    ],
+    experience: [
+      {
+        company: String,
+        position: String,
+        startDate: Date,
+        endDate: Date,
+        current: Boolean,
+        description: String,
+      },
+    ],
+    skills: [
+      {
+        name: String,
+        level: {
+          type: String,
+          enum: ['beginner', 'intermediate', 'advanced', 'expert'],
+        },
+      },
+    ],
     socialMedia: {
       type: Map,
       of: String,

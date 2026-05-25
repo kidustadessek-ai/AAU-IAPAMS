@@ -10,6 +10,11 @@ import { Readable } from 'stream';
  */
 export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceType = 'auto') => {
   return new Promise((resolve, reject) => {
+    if (!fileBuffer) {
+      reject(new Error('No file buffer provided'));
+      return;
+    }
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folder,
@@ -19,15 +24,22 @@ export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceTy
       (error, result) => {
         if (error) {
           console.error('Cloudinary upload error:', error);
-          reject(new Error('File upload failed'));
+          reject(new Error(error.message || 'File upload failed'));
+        } else if (!result) {
+          reject(new Error('No result from Cloudinary'));
         } else {
           resolve(result.secure_url);
         }
       }
     );
 
-    const readableStream = Readable.from(fileBuffer);
-    readableStream.pipe(uploadStream);
+    try {
+      const readableStream = Readable.from(fileBuffer);
+      readableStream.pipe(uploadStream);
+    } catch (streamError) {
+      console.error('Stream error:', streamError);
+      reject(new Error('Failed to create upload stream: ' + streamError.message));
+    }
   });
 };
 

@@ -61,10 +61,13 @@ export const handleMulterError = (err, req, res, next) => {
       message: err.message,
     });
   } else if (err) {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+    // Only return error if it's a real error, not just missing file
+    if (err.message && !err.message.includes('Unexpected field')) {
+      return res.status(400).json({
+        success: false,
+        message: err.message,
+      });
+    }
   }
   next();
 };

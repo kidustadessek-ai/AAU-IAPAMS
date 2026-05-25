@@ -80,11 +80,24 @@ export const updateUserProfile = async (data, token) => {
     }
     formData.append('socialMedia', JSON.stringify(socialMedia));
 
-    if (data.profilePhotoFile) {
+    if (data.education) {
+      formData.append('education', JSON.stringify(data.education));
+    }
+
+    if (data.experience) {
+      formData.append('experience', JSON.stringify(data.experience));
+    }
+
+    if (data.skills) {
+      formData.append('skills', JSON.stringify(data.skills));
+    }
+
+    // Only append profilePhoto if there's actually a file
+    if (data.profilePhotoFile && data.profilePhotoFile instanceof File) {
       formData.append('profilePhoto', data.profilePhotoFile);
     }
 
-    const res = await api.patch(`/auth/users/${data.id}`, formData, {
+    const res = await api.patch(`/auth/me`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`

@@ -31,8 +31,8 @@ export const getApplications = async (req, res) => {
 
     const applications = await Application.find(query)
       .populate('position', 'title department college deadline status')
-      .populate('applicant', 'fullName email department phone')
-      .populate('evaluations.evaluator', 'fullName email')
+      .populate('applicant', 'fullName email department phone profilePhoto')
+      .populate('evaluations.evaluator', 'fullName email profilePhoto')
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort(sortOptions);
@@ -65,7 +65,7 @@ export const getApplication = async (req, res) => {
     const application = await Application.findById(req.params.id)
       .populate('position', 'title department deadline status requirements')
       .populate('applicant', 'fullName email department phone profilePhoto')
-      .populate('evaluations.evaluator', 'fullName email');
+      .populate('evaluations.evaluator', 'fullName email profilePhoto');
 
     if (!application) {
       return res.status(404).json({
@@ -276,7 +276,7 @@ export const evaluateApplication = async (req, res) => {
     const updatedApplication = await Application.findById(id)
       .populate('position', 'title department')
       .populate('applicant', 'fullName email')
-      .populate('evaluations.evaluator', 'fullName email');
+      .populate('evaluations.evaluator', 'fullName email profilePhoto');
 
     res.json({
       success: true,

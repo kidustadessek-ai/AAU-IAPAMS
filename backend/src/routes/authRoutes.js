@@ -24,6 +24,7 @@ router.post('/refresh-token', refreshAccessToken);
 
 // Protected routes
 router.get('/me', authenticate, getMe);
+router.patch('/me', authenticate, uploadProfilePhoto, handleMulterError, updateUser);
 router.patch('/change-password', authenticate, changePassword);
 
 // Admin routes

@@ -5,10 +5,13 @@ export const apiBaseurl =
 
 export const api = axios.create({
   baseURL: apiBaseurl,
-  timeout: 10000,
+  timeout: 30000,
 });
 
-export const publicApi = axios.create({ baseURL: apiBaseurl });
+export const publicApi = axios.create({ 
+  baseURL: apiBaseurl,
+  timeout: 30000,
+});
 
 // Attach access token from localStorage on every request
 api.interceptors.request.use((config) => {

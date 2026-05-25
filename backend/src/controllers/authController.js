@@ -378,23 +378,71 @@ export const getUsers = async (req, res) => {
 };
 
 // @desc    Update user
-// @route   PATCH /api/v1/auth/users/:id
+// @route   PATCH /api/v1/auth/users/:id (Admin) or PATCH /api/v1/auth/me (Self)
 // @access  Private
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    let updates = { ...req.body };
+
+    console.log('Update request - params:', req.params);
+    console.log('Update request - body:', updates);
+    console.log('Update request - file:', req.file);
+
+    // Determine which user to update
+    const userId = id || req.user._id;
+
+    // If not admin and trying to update someone else, deny
+    if (id && id !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to update this user',
+      });
+    }
 
     // Don't allow password update through this route
     delete updates.password;
 
-    // Handle profile photo upload
-    if (req.file) {
-      const photoUrl = await uploadToCloudinary(req.file.buffer, 'aau-iapams/profiles', 'image');
-      updates.profilePhoto = photoUrl;
+    // Don't allow role change unless admin
+    if (req.user.role !== 'admin') {
+      delete updates.role;
+      delete updates.status;
     }
 
-    const user = await User.findByIdAndUpdate(id, updates, {
+    // Parse JSON strings for complex fields
+    ['socialMedia', 'education', 'experience', 'skills'].forEach(field => {
+      if (updates[field] && typeof updates[field] === 'string') {
+        try {
+          updates[field] = JSON.parse(updates[field]);
+        } catch (e) {
+          console.error(`Failed to parse ${field}:`, e);
+          updates[field] = field === 'socialMedia' ? {} : [];
+        }
+      }
+    });
+
+    // Handle profile photo upload
+    if (req.file) {
+      console.log('File detected, uploading to Cloudinary...');
+      try {
+        const photoUrl = await uploadToCloudinary(req.file.buffer, 'aau-iapams/profiles', 'image');
+        console.log('Photo uploaded successfully:', photoUrl);
+        updates.profilePhoto = photoUrl;
+      } catch (error) {
+        console.error('Failed to upload photo:', error);
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to upload profile photo: ' + error.message,
+        });
+      }
+    } else {
+      console.log('No file in request');
+    }
+
+    console.log('Updating user with ID:', userId);
+    console.log('Updates to apply:', updates);
+
+    const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
     });
@@ -406,12 +454,15 @@ export const updateUser = async (req, res) => {
       });
     }
 
+    console.log('User updated successfully');
+
     res.json({
       success: true,
       message: 'User updated successfully',
       data: user,
     });
   } catch (error) {
+    console.error('Update user error:', error);
     res.status(500).json({
       success: false,
       message: error.message,

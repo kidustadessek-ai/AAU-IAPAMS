@@ -938,20 +938,33 @@ const EvaluationPage = () => {
                       >
                         {/* Evaluator Header */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                          <div style={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: '50%',
-                            background: '#7B1113',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: '#fff',
-                            fontSize: '1rem',
-                            fontWeight: 700,
-                          }}>
-                            {evalItem.evaluator?.username?.charAt(0).toUpperCase()}
-                          </div>
+                          {evalItem.evaluator?.profilePhoto ? (
+                            <img
+                              src={evalItem.evaluator.profilePhoto}
+                              alt={evalItem.evaluator.username}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          ) : (
+                            <div style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              background: '#7B1113',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#fff',
+                              fontSize: '1rem',
+                              fontWeight: 700,
+                            }}>
+                              {evalItem.evaluator?.username?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                           <div style={{ flex: 1 }}>
                             <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
                               {evalItem.evaluator?.username}
