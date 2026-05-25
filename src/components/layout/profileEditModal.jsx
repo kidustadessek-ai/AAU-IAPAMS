@@ -232,12 +232,42 @@ const handleSave = () => {
 };
    if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1300] p-4">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#7B1113]"></div>
+      <div style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1300,
+        padding: 16,
+      }}>
+        <div style={{
+          background: '#fff',
+          borderRadius: 12,
+          padding: 32,
+          width: '100%',
+          maxWidth: 400,
+          textAlign: 'center',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <div style={{
+              width: 48,
+              height: 48,
+              border: '3px solid #f0eded',
+              borderTop: '3px solid #7B1113',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+            }} />
           </div>
-          <p className="text-center text-gray-600">Loading profile data...</p>
+          <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>Loading profile data...</p>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
         </div>
       </div>
     );
@@ -245,53 +275,106 @@ const handleSave = () => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1300] p-4">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1300,
+          padding: 16,
+        }}>
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              width: '100%',
+              maxWidth: 800,
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+            }}
           >
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold">Edit Profile</h3>
-                <button onClick={onClose} disabled={isSaving} className="text-gray-500 hover:text-gray-700">
-                  <FiX size={24} />
-                </button>
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #7B1113 0%, #5a0c0e 100%)',
+              color: '#fff',
+              padding: '20px 24px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <FiUser size={22} />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0 }}>Edit Profile</h3>
               </div>
+              <button
+                onClick={onClose}
+                disabled={isSaving}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fff',
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  opacity: isSaving ? 0.5 : 1,
+                }}
+              >
+                <FiX size={24} />
+              </button>
+            </div>
 
-              <div className="flex border-b mb-6">
+            {/* Tabs */}
+            <div style={{
+              display: 'flex',
+              borderBottom: '1px solid #f0eded',
+              background: '#fafafa',
+              padding: '0 24px',
+              overflowX: 'auto',
+            }}>
+              {[
+                { id: 'basic', label: 'Basic Info' },
+                { id: 'education', label: 'Education' },
+                { id: 'experience', label: 'Experience' },
+                { id: 'skills', label: 'Skills' },
+                { id: 'social', label: 'Social & Links' },
+              ].map(tab => (
                 <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'basic' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
-                  onClick={() => setActiveTab('basic')}
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '12px 16px',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    color: activeTab === tab.id ? '#7B1113' : '#64748b',
+                    borderBottom: activeTab === tab.id ? '2px solid #7B1113' : '2px solid transparent',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap',
+                  }}
                 >
-                  Basic Info
+                  {tab.label}
                 </button>
-                <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'education' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
-                  onClick={() => setActiveTab('education')}
-                >
-                  Education
-                </button>
-                <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'experience' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
-                  onClick={() => setActiveTab('experience')}
-                >
-                  Experience
-                </button>
-                <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'skills' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
-                  onClick={() => setActiveTab('skills')}
-                >
-                  Skills
-                </button>
-                <button
-                  className={`py-2 px-4 font-medium ${activeTab === 'social' ? 'text-[#7B1113] border-b-2 border-[#7B1113]' : 'text-gray-500'}`}
-                  onClick={() => setActiveTab('social')}
-                >
-                  Social & Links
-                </button>
-              </div>
+              ))}
+            </div>
+
+            {/* Content */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: 24,
+              background: '#fafafa',
+            }}>
 
               {activeTab === 'basic' && (
                 <div className="space-y-4">
@@ -908,24 +991,49 @@ const handleSave = () => {
                   </div>
                 </div>
               )}
+            </div>
 
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  type="button"
-                  disabled={isSaving}
-                  className="px-4 py-2 bg-[#7B1113] rounded-md text-sm font-medium text-white hover:bg-[#5a0d0f]"
-                >
-                  {isSaving ? 'Saving...' : 'Save Changes'}
-
-                </button>
-              </div>
+            {/* Footer */}
+            <div style={{
+              padding: '16px 24px',
+              background: '#fff',
+              borderTop: '1px solid #f0eded',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 12,
+            }}>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '8px 20px',
+                  borderRadius: 8,
+                  border: '1px solid #e5e7eb',
+                  background: '#fff',
+                  color: '#374151',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                type="button"
+                disabled={isSaving}
+                style={{
+                  padding: '8px 24px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: isSaving ? '#94a3b8' : '#7B1113',
+                  color: '#fff',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </motion.div>
         </div>
