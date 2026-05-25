@@ -3,7 +3,7 @@ import { useAuth } from '../../../context/authContext';
 import { useNavigate } from 'react-router-dom';
 import { getUserStats } from '../../../services/applicationService';
 import StatsCards from './_components/StatsCards';
-import ApplicationsChart from './_components/ApplicationsChart';
+import EnhancedChartsSection from './_components/EnhancedChartsSection';
 import RecentActivities from './_components/RecentActivities';
 import RecentJobPosts from './_components/RecentJobPosts';
 
@@ -69,14 +69,14 @@ const Overview = () => {
       {/* Stats */}
       <StatsCards stats={stats} loading={loading} />
 
-      {/* Charts row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 20, marginBottom: 20 }}>
-        <ApplicationsChart stats={stats} loading={loading} />
-        <RecentActivities />
-      </div>
+      {/* Enhanced Charts Section */}
+      <EnhancedChartsSection stats={stats} loading={loading} />
 
       {/* Bottom row */}
-      <RecentJobPosts />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginTop: 20 }}>
+        <RecentJobPosts />
+        <RecentActivities />
+      </div>
     </div>
   );
 };
