@@ -75,7 +75,7 @@ const ApplicationManagement = () => {
       setApplications([]);
       setTotal(0);
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 100); // Small delay to prevent flash
     }
   };
 
@@ -147,7 +147,7 @@ const ApplicationManagement = () => {
             display: 'flex', alignItems: 'center', gap: 8,
           }}>
             <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#7B1113', lineHeight: 1 }}>
-              {applications.length}
+              {total}
             </span>
             <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Total<br />Applications</span>
           </div>
@@ -272,10 +272,16 @@ const ApplicationManagement = () => {
             <tbody>
               {loading ? (
                 [...Array(6)].map((_, i) => <SkeletonRow key={i} />)
+              ) : applications.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    No applications found
+                  </td>
+                </tr>
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    No applications match your filters
+                    No applications match your filters. <button onClick={() => setFilters({ status: 'all', college: 'all', search: '' })} style={{ color: '#7B1113', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}>Clear filters</button>
                   </td>
                 </tr>
               ) : filtered.map((app, i) => (
