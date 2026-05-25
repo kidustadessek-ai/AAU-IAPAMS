@@ -21,7 +21,6 @@ const AAU_BRAND = {
   primaryColor: '#7B1113',
   secondaryColor: '#1a1a2e',
   lightBg: '#fdf0f0',
-  logo: 'https://www.aau.edu.et/wp-content/uploads/2020/09/AAU-LOGO.png',
   name: 'Addis Ababa University',
   address: 'P.O. Box 1176, Addis Ababa, Ethiopia',
   phone: '+251-11-123-9768',
@@ -45,7 +44,9 @@ const getEmailTemplate = (title, content, ctaText = null, ctaLink = null) => `
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,${AAU_BRAND.primaryColor} 0%,#5a0d0e 100%);padding:30px 40px;text-align:center">
-              <img src="${AAU_BRAND.logo}" alt="AAU Logo" style="height:60px;margin-bottom:15px">
+              <div style="width:70px;height:70px;background:#fff;border-radius:50%;margin:0 auto 15px;display:inline-block;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.2)">
+                <img src="https://raw.githubusercontent.com/kidustadessek-ai/AAU-IAPAMS/main/public/aau.png" alt="AAU" style="width:100%;height:100%;object-fit:cover;display:block">
+              </div>
               <h1 style="color:#fff;margin:0;font-size:24px;font-weight:700">${AAU_BRAND.name}</h1>
               <p style="color:rgba(255,255,255,0.9);margin:5px 0 0;font-size:13px">Internal Academic Position Appointment Management System</p>
             </td>
