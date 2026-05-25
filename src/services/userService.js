@@ -1,5 +1,5 @@
-import { api } from "../utils/api";
-
+import { api } from '../utils/api';
+import { getSearchQuery } from '../utils/helper';
 
 export const getUsers = async (queryParams, token) => {
     try {
@@ -57,7 +57,6 @@ export const updateUserProfile = async (data, token) => {
   try {
     const formData = new FormData();
     
-    // Append all simple fields
     const simpleFields = [
       'fullName', 'email', 'phone', 'department', 
       'positionType', 'bio', 'address', 'website'
@@ -69,14 +68,6 @@ export const updateUserProfile = async (data, token) => {
       }
     });
 
-    // Handle complex fields - ensure they're always arrays
-    // const arrayFields = ['education', 'experience', 'skills'];
-    // arrayFields.forEach(field => {
-    //   const fieldData = Array.isArray(data[field]) ? data[field] : [];
-    //   formData.append(field, JSON.stringify(fieldData));
-    // });
-
-    // Handle socialMedia - ensure it's always an object
     let socialMedia = {};
     if (data.socialMedia) {
       try {
@@ -89,14 +80,8 @@ export const updateUserProfile = async (data, token) => {
     }
     formData.append('socialMedia', JSON.stringify(socialMedia));
 
-    // Handle profile photo
     if (data.profilePhotoFile) {
       formData.append('profilePhoto', data.profilePhotoFile);
-    }
-
-    // Debug: Log what's being sent
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
     }
 
     const res = await api.patch(`/auth/users/${data.id}`, formData, {
@@ -116,7 +101,6 @@ export const updateUserProfile = async (data, token) => {
       message: res.data.message
     };
   } catch (error) {
-    console.error('Update error:', error);
     return { 
       success: false, 
       error: error.response?.data || { message: error.message || 'An unknown error occurred' } 
@@ -225,11 +209,8 @@ export const getUserProfile = async (token) => {
     const res = await api.get('/auth/me', {
       headers: { Authorization: `Bearer ${token}` }
     });
-    // console.log('User profile response:', res.data);
     return { success: true, data: res.data };
   } catch (error) {
-    console.error('getUserProfile error:', error);
-    // toast.error(error.response?.data?.message || 'Failed to fetch profile');
     return { success: false, data: null };
   }
 };

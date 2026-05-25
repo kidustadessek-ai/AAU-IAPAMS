@@ -1,8 +1,8 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiUpload, FiX, FiPlus, FiTrash2, FiLink } from 'react-icons/fi';
-import { useState, useEffect, } from 'react';
-import { debounce } from 'lodash';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const ProfileEditModal = ({
   isOpen,
@@ -49,87 +49,61 @@ const ProfileEditModal = ({
   useEffect(() => {
     setUserData(initialUserData);
   }, [initialUserData]);
+  const handleAddEducation = () => {
+    if (!newEducation.institution.trim()) {
+      toast.error('Institution name is required');
+      return;
+    }
 
-  // Debounced form updates for better performance
-  const debouncedUpdate = debounce((field, value) => {
     setUserData(prev => ({
       ...prev,
-      [field]: value
+      education: [...(prev.education || []), newEducation]
     }));
-  }, 300);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    debouncedUpdate(name, value);
+    setNewEducation({
+      institution: '',
+      degree: '',
+      fieldOfStudy: '',
+      startYear: '',
+      endYear: '',
+      description: ''
+    });
   };
 
-const handleArrayFieldChange = (field, index, subField, value) => {
-  setUserData(prev => {
-    const updatedArray = [...(prev[field] || [])];
-    if (!updatedArray[index]) {
-      updatedArray[index] = {};
-    }
-    updatedArray[index] = {
-      ...updatedArray[index],
-      [subField]: value
-    };
-    return {
-      ...prev,
-      [field]: updatedArray
-    };
-  });
-};
-const handleAddEducation = () => {
-  if (!newEducation.institution.trim()) {
-    toast.error('Institution name is required');
-    return;
-  }
+  const handleEducationChange = (index, field, value) => {
+    setUserData(prev => {
+      const updatedEducation = [...prev.education];
+      updatedEducation[index] = {
+        ...updatedEducation[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        education: updatedEducation
+      };
+    });
+  };
 
-  setUserData(prev => ({
-    ...prev,
-    education: [...(prev.education || []), newEducation]
-  }));
+  const handleExperienceChange = (index, field, value) => {
+    setUserData(prev => {
+      const updatedExperience = [...prev.experience];
+      updatedExperience[index] = {
+        ...updatedExperience[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        experience: updatedExperience
+      };
+    });
+  };
 
-  setNewEducation({
-    institution: '',
-    degree: '',
-    fieldOfStudy: '',
-    startYear: '',
-    endYear: '',
-    description: ''
-  });
-};
-
-const handleEducationChange = (index, field, value) => {
-  setUserData(prev => {
-    const updatedEducation = [...prev.education];
-    updatedEducation[index] = {
-      ...updatedEducation[index],
-      [field]: value
-    };
-    return {
-      ...prev,
-      education: updatedEducation
-    };
-  });
-};
-
-const handleExperienceChange = (index, field, value) => {
-  setUserData(prev => {
-    const updatedExperience = [...prev.experience];
-    updatedExperience[index] = {
-      ...updatedExperience[index],
-      [field]: value
-    };
-    return {
-      ...prev,
-      experience: updatedExperience
-    };
-  });
-};
-
-// Similar fixes for handleAddExperience and handleAddSkill
   const handleAddExperience = () => {
+    if (!newExperience.company.trim() || !newExperience.position.trim()) {
+      toast.error('Company and position are required');
+      return;
+    }
+
     setUserData(prev => ({
       ...prev,
       experience: [...(prev.experience || []), newExperience]
@@ -145,91 +119,72 @@ const handleExperienceChange = (index, field, value) => {
     });
   };
 
-const handleAddSkill = () => {
-  if (!newSkill.name.trim()) {
-    toast.error('Skill name is required');
-    return;
-  }
+  const handleAddSkill = () => {
+    if (!newSkill.name.trim()) {
+      toast.error('Skill name is required');
+      return;
+    }
 
-  setUserData(prev => ({
-    ...prev,
-    skills: [...prev.skills, {
-      name: newSkill.name,
-      level: newSkill.level
-    }]
-  }));
-
-  setNewSkill({
-    name: '',
-    level: 'beginner'
-  });
-};
-
-const handleSkillChange = (index, field, value) => {
-  setUserData(prev => {
-    const updatedSkills = [...prev.skills];
-    updatedSkills[index] = {
-      ...updatedSkills[index],
-      [field]: value
-    };
-    return {
+    setUserData(prev => ({
       ...prev,
-      skills: updatedSkills
-    };
-  });
-}
+      skills: [...(prev.skills || []), {
+        name: newSkill.name,
+        level: newSkill.level
+      }]
+    }));
 
-const removeEducation = (index) => {
-  setUserData(prev => ({
-    ...prev,
-    education: prev.education.filter((_, i) => i !== index)
-  }));
-};
+    setNewSkill({
+      name: '',
+      level: 'beginner'
+    });
+  };
 
-const removeExperience = (index) => {
-  setUserData(prev => ({
-    ...prev,
-    experience: prev.experience.filter((_, i) => i !== index)
-  }));
-};
-
-const removeSkill = (index) => {
-  setUserData(prev => ({
-    ...prev,
-    skills: prev.skills.filter((_, i) => i !== index)
-  }));
-};
-  const handleRemoveItem = (field, index) => {
+  const handleSkillChange = (index, field, value) => {
     setUserData(prev => {
-      const updatedArray = [...prev[field]];
-      updatedArray.splice(index, 1);
+      const updatedSkills = [...prev.skills];
+      updatedSkills[index] = {
+        ...updatedSkills[index],
+        [field]: value
+      };
       return {
         ...prev,
-        [field]: updatedArray
+        skills: updatedSkills
       };
     });
   };
 
-  // const handleSave = () => {
-  //   onSave(userData);
-
-  // };
-
-const handleSave = () => {
-  // Ensure all array fields exist and are arrays
-  const payload = {
-    ...userData,
-    education: userData.education || [],
-    experience: userData.experience || [],
-    skills: userData.skills || [],
-    socialMedia: userData.socialMedia || {}
+  const removeEducation = (index) => {
+    setUserData(prev => ({
+      ...prev,
+      education: prev.education.filter((_, i) => i !== index)
+    }));
   };
-  
-  // Debug before sending
-  console.log('Saving payload:', payload);
-  
-  onSave(payload);
-};
+
+  const removeExperience = (index) => {
+    setUserData(prev => ({
+      ...prev,
+      experience: prev.experience.filter((_, i) => i !== index)
+    }));
+  };
+
+  const removeSkill = (index) => {
+    setUserData(prev => ({
+      ...prev,
+      skills: prev.skills.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleSave = () => {
+    const payload = {
+      ...userData,
+      education: userData.education || [],
+      experience: userData.experience || [],
+      skills: userData.skills || [],
+      socialMedia: userData.socialMedia || {}
+    };
+    
+    onSave(payload);
+  };
    if (isLoading) {
     return (
       <div style={{
@@ -852,15 +807,7 @@ const handleSave = () => {
                             <input
                               type="text"
                               value={skill.name || ''}
-                              // onChange={(e) => handleSkillChange( index, 'name', e.target.value)}
-                               onChange={(e) => {
-        const updatedSkills = [...userData.skills];
-        updatedSkills[index] = {
-          ...updatedSkills[index],
-          name: e.target.value
-        };
-        setUserData({...userData, skills: updatedSkills});
-      }}
+                              onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
                               className="w-full border border-gray-300 rounded-md p-2"
                             />
                           </div>

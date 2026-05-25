@@ -160,6 +160,5 @@ export const handleCopy = async (text) => {
     toast.success('Copied to clipboard!');
   } catch (err) {
     toast.error('Failed to copy text.');
-    console.error('Error copying text:', err);
   }
 };
