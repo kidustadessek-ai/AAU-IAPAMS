@@ -54,6 +54,7 @@ const ApplicationManagement = () => {
   useEffect(() => { fetchApplications(); }, [page]);
 
   const fetchApplications = async () => {
+    setLoading(true);
     try {
       const res = await api.get('/applications', { params: { page, limit } });
       const apps = res.data?.data || [];
@@ -416,15 +417,15 @@ const ApplicationManagement = () => {
               >
                 Previous
               </button>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Page {page} of {Math.ceil(total / limit)}</span>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Page {page} of {Math.ceil(total / limit) || 1}</span>
               <button
                 onClick={() => setPage(p => p + 1)}
-                disabled={page >= Math.ceil(total / limit)}
+                disabled={page >= Math.ceil(total / limit) || total === 0}
                 style={{
                   padding: '6px 12px', borderRadius: 6, border: '1px solid #ede9e9',
-                  background: page >= Math.ceil(total / limit) ? '#f8f7f5' : '#fff',
-                  color: page >= Math.ceil(total / limit) ? '#94a3b8' : '#374151',
-                  fontSize: '0.75rem', cursor: page >= Math.ceil(total / limit) ? 'not-allowed' : 'pointer',
+                  background: (page >= Math.ceil(total / limit) || total === 0) ? '#f8f7f5' : '#fff',
+                  color: (page >= Math.ceil(total / limit) || total === 0) ? '#94a3b8' : '#374151',
+                  fontSize: '0.75rem', cursor: (page >= Math.ceil(total / limit) || total === 0) ? 'not-allowed' : 'pointer',
                 }}
               >
                 Next
