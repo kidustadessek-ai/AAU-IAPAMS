@@ -185,16 +185,6 @@ const PositionManagement = () => {
     if (!deleteTarget) return;
     setIsDeleting(true);
     try {
-      // Check if position has applications
-      const appsRes = await getApplicationsByPosition(deleteTarget._id);
-      const applicationCount = appsRes.success ? appsRes.data.length : 0;
-      
-      if (applicationCount > 0) {
-        toast.error(`Cannot delete position with ${applicationCount} existing application(s)`);
-        setIsDeleting(false);
-        return;
-      }
-
       // If position is open, close it first before deleting
       if (deleteTarget.status === 'open') {
         const closeRes = await closePosition(deleteTarget._id);
@@ -1076,19 +1066,20 @@ const PositionManagement = () => {
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#dc2626', margin: 0 }}>Delete Position</h3>
             </div>
             <div style={{ padding: '20px 24px' }}>
-              {deleteTarget.applicants > 0 ? (
-                <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 12 }}>
-                  <p style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 600, margin: 0 }}>
-                    ✕ Cannot delete — this position has {deleteTarget.applicants} existing application(s). Remove all applications first.
-                  </p>
-                </div>
-              ) : deleteTarget.status === 'open' ? (
+              {deleteTarget.status === 'open' ? (
                 <div style={{ padding: '12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, marginBottom: 12 }}>
                   <p style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600, margin: 0 }}>
                     ℹ This position is currently open. It will be closed automatically before deletion.
                   </p>
                 </div>
               ) : null}
+              {deleteTarget.applicants > 0 && (
+                <div style={{ padding: '12px', background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, marginBottom: 12 }}>
+                  <p style={{ fontSize: '0.8rem', color: '#92400e', fontWeight: 600, margin: 0 }}>
+                    ⚠ Warning: This position has {deleteTarget.applicants} application(s). Deleting will also remove all associated applications.
+                  </p>
+                </div>
+              )}
               <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
                 Are you sure you want to permanently delete <strong>{deleteTarget.title}</strong>? This action cannot be undone.
               </p>
@@ -1107,12 +1098,12 @@ const PositionManagement = () => {
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                disabled={isDeleting || (deleteTarget.applicants > 0)}
+                disabled={isDeleting}
                 style={{
                   padding: '8px 16px', borderRadius: 8, border: 'none',
-                  background: (isDeleting || (deleteTarget.applicants > 0)) ? '#fca5a5' : '#dc2626',
+                  background: isDeleting ? '#fca5a5' : '#dc2626',
                   color: '#fff', fontSize: '0.8rem', fontWeight: 600,
-                  cursor: (isDeleting || (deleteTarget.applicants > 0)) ? 'not-allowed' : 'pointer',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
                   display: 'flex', alignItems: 'center', gap: 6,
                 }}
               >

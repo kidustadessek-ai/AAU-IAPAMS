@@ -208,21 +208,15 @@ export const deletePosition = async (req, res) => {
       });
     }
 
-    // Check if there are applications
-    const applicationCount = await Application.countDocuments({ position: id });
+    // Delete all applications associated with this position
+    await Application.deleteMany({ position: id });
 
-    if (applicationCount > 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cannot delete position with existing applications',
-      });
-    }
-
+    // Delete the position
     await Position.findByIdAndDelete(id);
 
     res.json({
       success: true,
-      message: 'Position deleted successfully',
+      message: 'Position and associated applications deleted successfully',
     });
   } catch (error) {
     res.status(500).json({
