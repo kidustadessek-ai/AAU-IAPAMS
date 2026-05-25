@@ -1,12 +1,9 @@
 import { Dialog } from "/src/components/dialog/Dialog";
 import { CustomPasswordInput } from "/src/components/formFields/CustomPasswordInput";
-import { Button, CircularProgress, FormControl, FormHelperText, Grid, InputLabel, MenuItem, OutlinedInput, Select, Stack } from "@mui/material";
-
 import { useFormik } from "formik";
 import React from "react";
 import * as Yup from 'yup';
 import { createUser, updateUserData } from "./_lib/user.actions";
-
 
 const getValidationSchema = (isUpdated) => {
     return Yup.object().shape({
@@ -32,9 +29,7 @@ export const ManageUserDialog = (props) => {
         handleChange,
         handleSubmit,
         handleBlur,
-        setValues,
         setFieldValue,
-        resetForm,
     } = useFormik({
         initialValues: {
             username: data?.username || '',
@@ -73,102 +68,148 @@ export const ManageUserDialog = (props) => {
             open={open}
         >
             <form onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <FormControl fullWidth error={Boolean(errors.username)}>
-                            <InputLabel>Username</InputLabel>
-                            <OutlinedInput
-                                name="username"
-                                value={values.username}
-                                onChange={handleChange}
-                                disabled={isUpdated}
-                            />
-                        </FormControl>
-                    </Grid>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Username *</label>
+                        <input
+                            type="text"
+                            name="username"
+                            value={values.username}
+                            onChange={handleChange}
+                            disabled={isUpdated}
+                            style={{
+                                width: '100%', padding: '9px 12px', borderRadius: 8,
+                                border: errors.username ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                                fontSize: '0.8rem', outline: 'none',
+                                opacity: isUpdated ? 0.6 : 1,
+                            }}
+                        />
+                        {errors.username && (
+                            <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.username}</p>
+                        )}
+                    </div>
 
-                    <Grid item xs={6}>
-                        <FormControl fullWidth error={Boolean(errors.fullName)}>
-                            <InputLabel>Full Name</InputLabel>
-                            <OutlinedInput
-                                name="fullName"
-                                value={values.fullName}
-                                onChange={handleChange}
-                            />
-                        </FormControl>
-                    </Grid>
+                    <div>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Full Name *</label>
+                        <input
+                            type="text"
+                            name="fullName"
+                            value={values.fullName}
+                            onChange={handleChange}
+                            style={{
+                                width: '100%', padding: '9px 12px', borderRadius: 8,
+                                border: errors.fullName ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                                fontSize: '0.8rem', outline: 'none',
+                            }}
+                        />
+                        {errors.fullName && (
+                            <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.fullName}</p>
+                        )}
+                    </div>
 
-                    <Grid item xs={12}>
-                        <FormControl fullWidth error={Boolean(errors.email)}>
-                            <InputLabel>Email</InputLabel>
-                            <OutlinedInput
-                                name="email"
-                                value={values.email}
-                                onChange={handleChange}
-                            />
-                        </FormControl>
-                    </Grid>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Email *</label>
+                        <input
+                            type="email"
+                            name="email"
+                            value={values.email}
+                            onChange={handleChange}
+                            style={{
+                                width: '100%', padding: '9px 12px', borderRadius: 8,
+                                border: errors.email ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                                fontSize: '0.8rem', outline: 'none',
+                            }}
+                        />
+                        {errors.email && (
+                            <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.email}</p>
+                        )}
+                    </div>
 
-                    <Grid item xs={12}>
-                        <FormControl fullWidth error={Boolean(errors.role)}>
-                            <InputLabel>Role</InputLabel>
-                            <Select
-                                labelId="role"
-                                id="role"
-                                value={values.role}
-                                label="Role"
-                                onChange={(event) => setFieldValue("role", event.target.value)}
-                            >
-                                <MenuItem value={"admin"}>Admin</MenuItem>
-                                <MenuItem value={"staff"}>Staff</MenuItem>
-                                <MenuItem value={"evaluator"}>Evaluator</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Role *</label>
+                        <select
+                            name="role"
+                            value={values.role}
+                            onChange={(e) => setFieldValue("role", e.target.value)}
+                            style={{
+                                width: '100%', padding: '9px 12px', borderRadius: 8,
+                                border: errors.role ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                                fontSize: '0.8rem', outline: 'none',
+                            }}
+                        >
+                            <option value="">Select a role</option>
+                            <option value="admin">Admin</option>
+                            <option value="staff">Staff</option>
+                            <option value="evaluator">Evaluator</option>
+                        </select>
+                        {errors.role && (
+                            <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.role}</p>
+                        )}
+                    </div>
 
                     {!isUpdated && (
                         <>
-                            <Grid item xs={6}>
-                                <FormControl error={Boolean(errors.password)}>
-                                    <InputLabel>Password</InputLabel>
-                                    <CustomPasswordInput
-                                        name="password"
-                                        value={values.password}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        error={Boolean(errors.password)}
-                                    />
-                                </FormControl>
-                            </Grid>
-
-                            <Grid item xs={6}>
-                                <FormControl error={Boolean(errors.confirm_password)}>
-                                    <InputLabel>Confirm Password</InputLabel>
-                                    <CustomPasswordInput
-                                        name="confirm_password"
-                                        value={values.confirm_password}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        error={Boolean(errors.confirm_password)}
-                                    />
-                                </FormControl>
-                                {errors.confirm_password && (
-                                    <FormHelperText>{errors.confirm_password}</FormHelperText>
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Password *</label>
+                                <CustomPasswordInput
+                                    name="password"
+                                    value={values.password}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    error={Boolean(errors.password)}
+                                />
+                                {errors.password && (
+                                    <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.password}</p>
                                 )}
-                            </Grid>
+                            </div>
+
+                            <div>
+                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Confirm Password *</label>
+                                <CustomPasswordInput
+                                    name="confirm_password"
+                                    value={values.confirm_password}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    error={Boolean(errors.confirm_password)}
+                                />
+                                {errors.confirm_password && (
+                                    <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.confirm_password}</p>
+                                )}
+                            </div>
                         </>
                     )}
 
-                    <Stack direction="row" justifyContent="flex-end" width="100%" mt={2}>
-                        <Button
-                            variant="contained"
+                    <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                        <button
                             type={loading ? "button" : "submit"}
-                            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
+                            disabled={loading}
+                            style={{
+                                padding: '8px 20px', borderRadius: 8, border: 'none',
+                                background: loading ? '#94a3b8' : '#7B1113', color: '#fff',
+                                fontSize: '0.8rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 6,
+                            }}
                         >
-                            {isUpdated ? "Update" : "Create"}
-                        </Button>
-                    </Stack>
-                </Grid>
+                            {loading ? (
+                                <>
+                                    <div style={{
+                                        width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)',
+                                        borderTopColor: '#fff', borderRadius: '50%',
+                                        animation: 'spin 0.6s linear infinite',
+                                    }} />
+                                    {isUpdated ? 'Updating...' : 'Creating...'}
+                                </>
+                            ) : (isUpdated ? 'Update' : 'Create')}
+                        </button>
+                    </div>
+                </div>
             </form>
+
+            <style>{`
+                @keyframes spin {
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </Dialog>
     )
 }
