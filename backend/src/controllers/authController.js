@@ -22,6 +22,8 @@ export const register = async (req, res) => {
     // Only admin can assign roles other than staff
     const assignedRole = req.user?.role === 'admin' ? (role || 'staff') : 'staff';
 
+    console.log('Creating user with role:', assignedRole, 'Requested role:', role, 'Admin role:', req.user?.role);
+
     // Create user
     const user = await User.create({
       username,

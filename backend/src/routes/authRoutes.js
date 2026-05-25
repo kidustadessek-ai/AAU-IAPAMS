@@ -17,7 +17,6 @@ import { uploadProfilePhoto, handleMulterError } from '../middleware/upload.js';
 const router = express.Router();
 
 // Public routes
-router.post('/register', register);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
@@ -28,6 +27,7 @@ router.get('/me', authenticate, getMe);
 router.patch('/change-password', authenticate, changePassword);
 
 // Admin routes
+router.post('/register', authenticate, authorize('admin'), register);
 router.get('/users', authenticate, authorize('admin'), getUsers);
 router.patch('/users/:id', authenticate, authorize('admin'), uploadProfilePhoto, handleMulterError, updateUser);
 router.delete('/users', authenticate, authorize('admin'), deleteUsers);

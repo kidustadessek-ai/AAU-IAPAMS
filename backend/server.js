@@ -49,6 +49,9 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Serve static files from public folder
+app.use('/public', express.static('public'));
+
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -58,7 +61,8 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'AAU IAPAMS API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    logoUrl: `${req.protocol}://${req.get('host')}/public/aau.png`
   });
 });
 
