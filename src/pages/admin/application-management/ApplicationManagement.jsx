@@ -1,229 +1,345 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Search, FilterList, Assignment, CheckCircle, Cancel, 
-  Person, AccessTime, HowToReg, Mail, Download 
-} from '@mui/icons-material';
-import { useAuth } from '../../../context/authContext';
+import { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
-import toast from 'react-hot-toast';
 import { getColleges } from '../../../data/aauStructure';
+import toast from 'react-hot-toast';
+import { FiSearch, FiFilter, FiChevronDown, FiDownload, FiCheck, FiX } from 'react-icons/fi';
+
+const STATUS_CONFIG = {
+  pending:      { label: 'Pending',      bg: '#fefce8', color: '#a16207', dot: '#ca8a04' },
+  under_review: { label: 'Under Review', bg: '#eff6ff', color: '#1e40af', dot: '#3b82f6' },
+  shortlisted:  { label: 'Shortlisted',  bg: '#fdf0f0', color: '#7B1113', dot: '#7B1113' },
+  accepted:     { label: 'Accepted',     bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
+  rejected:     { label: 'Rejected',     bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
+};
+
+const StatusBadge = ({ status }) => {
+  const raw = status?.toLowerCase().replace(' ', '_') || 'pending';
+  const cfg = STATUS_CONFIG[raw] || { label: status, bg: '#f1f5f9', color: '#475569', dot: '#94a3b8' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: '3px 10px', borderRadius: 20,
+      background: cfg.bg, color: cfg.color,
+      fontSize: '0.7rem', fontWeight: 600,
+    }}>
+      <span style={{ width: 5, height: 5, borderRadius: '50%', background: cfg.dot, flexShrink: 0 }} />
+      {cfg.label}
+    </span>
+  );
+};
+
+const SkeletonRow = () => (
+  <tr>
+    {[...Array(7)].map((_, i) => (
+      <td key={i} style={{ padding: '14px 16px' }}>
+        <div style={{ height: 12, borderRadius: 4, background: '#f1f5f9', width: i === 0 ? 140 : i === 6 ? 80 : 100 }} />
+      </td>
+    ))}
+  </tr>
+);
 
 const ApplicationManagement = () => {
-  const { auth } = useAuth();
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const [filters, setFilters] = useState({
-    status: 'all',
-    department: 'all',
-    search: ''
-  });
+  const [updatingId, setUpdatingId] = useState(null);
+  const [filters, setFilters] = useState({ status: 'all', college: 'all', search: '' });
 
   const colleges = getColleges();
 
-  useEffect(() => {
-    fetchApplications();
-  }, [auth]);
+  useEffect(() => { fetchApplications(); }, []);
 
   const fetchApplications = async () => {
     try {
-      const res = await api.get('/applications', {
-        headers: { Authorization: `Bearer ${auth?.tokens?.accessToken}` }
-      });
+      const res = await api.get('/applications');
       const apps = res.data?.data || [];
       setApplications(apps.map(app => ({
         id: app._id,
-        applicant: app.applicant?.fullName || app.applicant?.username || 'Unknown',
-        position: app.position?.title || 'Unknown Position',
-        college: app.position?.college || 'Unknown',
-        department: app.position?.department || 'Unknown',
-        appliedDate: new Date(app.createdAt).toLocaleDateString(),
-        status: app.status.charAt(0).toUpperCase() + app.status.slice(1).replace('_', ' '),
-        documents: (app.documents?.cv ? 1 : 0) + (app.documents?.coverLetter ? 1 : 0) + (app.documents?.certificates?.length || 0),
-        email: app.applicant?.email || 'N/A'
+        name: app.applicant?.fullName || app.applicant?.username || 'Unknown',
+        email: app.applicant?.email || '—',
+        position: app.position?.title || '—',
+        college: app.position?.college || '—',
+        department: app.position?.department || '—',
+        date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: app.status,
+        cv: app.documents?.cv || null,
       })));
-    } catch (error) {
+    } catch {
       toast.error('Failed to load applications');
     } finally {
       setLoading(false);
     }
   };
 
-  const statusOptions = [
-    'All', 'Pending', 'Under Review', 'Shortlisted', 'Rejected', 'Accepted'
-  ];
-
-  const handleStatusChange = async (id, newStatus) => {
+  const handleStatus = async (id, newStatus) => {
+    setUpdatingId(id);
     try {
-      await api.patch(`/applications/${id}/status`, 
-        { status: newStatus.toLowerCase().replace(' ', '_') },
-        { headers: { Authorization: `Bearer ${auth?.tokens?.accessToken}` }}
-      );
-      setApplications(applications.map(app => 
-        app.id === id ? { ...app, status: newStatus } : app
-      ));
+      await api.patch(`/applications/${id}/status`, { status: newStatus });
+      setApplications(prev => prev.map(a => a.id === id ? { ...a, status: newStatus } : a));
       toast.success('Status updated');
     } catch {
       toast.error('Failed to update status');
+    } finally {
+      setUpdatingId(null);
     }
   };
 
-  const filteredApplications = applications.filter(app => {
-    return (
-      (filters.status === 'all' || app.status === filters.status) &&
-      (filters.department === 'all' || app.college === filters.department) &&
-      (filters.search === '' || 
-       app.applicant.toLowerCase().includes(filters.search.toLowerCase()) ||
-       app.position.toLowerCase().includes(filters.search.toLowerCase()))
-    );
-  });
+  const filtered = applications.filter(a =>
+    (filters.status === 'all' || a.status === filters.status) &&
+    (filters.college === 'all' || a.college === filters.college) &&
+    (filters.search === '' ||
+      a.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      a.position.toLowerCase().includes(filters.search.toLowerCase()))
+  );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Application Management</h1>
-      
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6">
-        <div className="flex flex-wrap gap-4 items-center">
-          <div className="relative flex-1 min-w-[200px]">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="text-gray-400" />
+    <div>
+      {/* Page header */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 3, height: 22, background: '#7B1113', borderRadius: 4 }} />
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a1a2e', margin: 0 }}>
+                Application Management
+              </h1>
             </div>
-            <input
-              type="text"
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Search applications..."
-              value={filters.search}
-              onChange={(e) => setFilters({...filters, search: e.target.value})}
-            />
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '4px 0 0 11px' }}>
+              Review, evaluate and manage all submitted applications
+            </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <FilterList className="text-gray-500" />
-            <select
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.status}
-              onChange={(e) => setFilters({...filters, status: e.target.value})}
-            >
-              {statusOptions.map(option => (
-                <option key={option} value={option === 'All' ? 'all' : option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Assignment className="text-gray-500" />
-            <select
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={filters.department}
-              onChange={(e) => setFilters({...filters, department: e.target.value})}
-            >
-              <option value="all">All Colleges</option>
-              {colleges.map(college => (
-                <option key={college} value={college}>
-                  {college}
-                </option>
-              ))}
-            </select>
+          <div style={{
+            background: '#fdf0f0', borderRadius: 8, padding: '8px 16px',
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#7B1113', lineHeight: 1 }}>
+              {applications.length}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 500 }}>Total<br />Applications</span>
           </div>
         </div>
+        <div style={{ height: 1, background: 'linear-gradient(to right, #7B1113, transparent)', marginTop: 16, opacity: 0.2 }} />
       </div>
-      
-      {/* Applications Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-      {loading ? (
-        <div className="p-8 text-center text-gray-500">Loading applications...</div>
-      ) : filteredApplications.length === 0 ? (
-        <div className="p-8 text-center text-gray-500">
-          No applications found matching your criteria
+
+      {/* Filters */}
+      <div style={{
+        background: '#fff', borderRadius: 12, border: '1px solid #f0eded',
+        padding: '14px 18px', marginBottom: 16,
+        display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+      }}>
+        {/* Search */}
+        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+          <FiSearch size={14} color="#94a3b8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
+          <input
+            type="text"
+            placeholder="Search by name or position..."
+            value={filters.search}
+            onChange={e => setFilters({ ...filters, search: e.target.value })}
+            style={{
+              width: '100%', paddingLeft: 32, paddingRight: 12, paddingTop: 8, paddingBottom: 8,
+              border: '1px solid #ede9e9', borderRadius: 8, fontSize: '0.8rem',
+              outline: 'none', color: '#1a1a2e', background: '#faf9f9',
+            }}
+          />
         </div>
-      ) : (
-        <>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applicant</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">College</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+
+        {/* Status filter */}
+        <div style={{ position: 'relative' }}>
+          <select
+            value={filters.status}
+            onChange={e => setFilters({ ...filters, status: e.target.value })}
+            style={{
+              appearance: 'none', padding: '8px 32px 8px 12px',
+              border: '1px solid #ede9e9', borderRadius: 8,
+              fontSize: '0.8rem', color: '#374151', background: '#faf9f9',
+              cursor: 'pointer', outline: 'none',
+            }}
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="under_review">Under Review</option>
+            <option value="shortlisted">Shortlisted</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          <FiChevronDown size={12} color="#94a3b8" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        </div>
+
+        {/* College filter */}
+        <div style={{ position: 'relative' }}>
+          <select
+            value={filters.college}
+            onChange={e => setFilters({ ...filters, college: e.target.value })}
+            style={{
+              appearance: 'none', padding: '8px 32px 8px 12px',
+              border: '1px solid #ede9e9', borderRadius: 8,
+              fontSize: '0.8rem', color: '#374151', background: '#faf9f9',
+              cursor: 'pointer', outline: 'none', maxWidth: 200,
+            }}
+          >
+            <option value="all">All Colleges</option>
+            {colleges.map(c => <option key={c} value={c}>{c.length > 30 ? c.substring(0, 30) + '…' : c}</option>)}
+          </select>
+          <FiChevronDown size={12} color="#94a3b8" style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+        </div>
+
+        {/* Clear */}
+        {(filters.search || filters.status !== 'all' || filters.college !== 'all') && (
+          <button
+            onClick={() => setFilters({ status: 'all', college: 'all', search: '' })}
+            style={{
+              padding: '8px 14px', borderRadius: 8, border: '1px solid #ede9e9',
+              background: '#fff', color: '#94a3b8', fontSize: '0.78rem',
+              cursor: 'pointer', fontWeight: 500,
+            }}
+          >
+            Clear
+          </button>
+        )}
+
+        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+          {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+
+      {/* Table */}
+      <div style={{
+        background: '#fff', borderRadius: 12, border: '1px solid #f0eded',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.04)', overflow: 'hidden',
+      }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ background: '#faf9f9', borderBottom: '2px solid #f0eded' }}>
+                {['Applicant', 'Position', 'College', 'Department', 'Applied', 'Status', 'Actions'].map(h => (
+                  <th key={h} style={{
+                    padding: '11px 16px', textAlign: 'left',
+                    fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8',
+                    textTransform: 'uppercase', letterSpacing: '0.07em', whiteSpace: 'nowrap',
+                  }}>{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredApplications.map((app) => (
-                <tr key={app.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Person className="text-blue-600" />
+            <tbody>
+              {loading ? (
+                [...Array(6)].map((_, i) => <SkeletonRow key={i} />)
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    No applications match your filters
+                  </td>
+                </tr>
+              ) : filtered.map((app, i) => (
+                <tr
+                  key={app.id}
+                  style={{
+                    borderBottom: i < filtered.length - 1 ? '1px solid #f8f5f5' : 'none',
+                    transition: 'background 0.1s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#fdf9f9'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                >
+                  {/* Applicant */}
+                  <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: '#fdf0f0', color: '#7B1113',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.75rem', fontWeight: 700, flexShrink: 0,
+                      }}>
+                        {app.name.charAt(0).toUpperCase()}
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{app.applicant}</div>
-                        <div className="text-sm text-gray-500">{app.email}</div>
+                      <div>
+                        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#1a1a2e' }}>{app.name}</div>
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{app.email}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{app.position}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {app.college}
+
+                  {/* Position */}
+                  <td style={{ padding: '13px 16px' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#374151', fontWeight: 500 }}>
+                      {app.position.length > 28 ? app.position.substring(0, 28) + '…' : app.position}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-aau-primary">
-                      {app.department}
+
+                  {/* College */}
+                  <td style={{ padding: '13px 16px' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                      {app.college?.split(' ').slice(0, 3).join(' ')}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <AccessTime className="mr-1 text-gray-400" size="small"/>
-                      {app.appliedDate}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${app.status === 'Received' ? 'bg-blue-100 text-blue-800' : 
-                        app.status === 'Under Review' ? 'bg-yellow-100 text-yellow-800' :
-                        app.status === 'Shortlisted' ? 'bg-red-100 text-aau-primary' :
-                        'bg-red-100 text-red-800'}`}>
-                      {app.status}
+
+                  {/* Department */}
+                  <td style={{ padding: '13px 16px' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                      {app.department?.length > 22 ? app.department.substring(0, 22) + '…' : app.department}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button 
-                        className="text-blue-600 hover:text-blue-900"
-                        onClick={() => handleStatusChange(app.id, 'Shortlisted')}
+
+                  {/* Date */}
+                  <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{app.date}</span>
+                  </td>
+
+                  {/* Status */}
+                  <td style={{ padding: '13px 16px' }}>
+                    <StatusBadge status={app.status} />
+                  </td>
+
+                  {/* Actions */}
+                  <td style={{ padding: '13px 16px' }}>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      {/* Shortlist */}
+                      <button
+                        onClick={() => handleStatus(app.id, 'shortlisted')}
+                        disabled={updatingId === app.id || app.status === 'shortlisted'}
                         title="Shortlist"
+                        style={{
+                          width: 28, height: 28, borderRadius: 6, border: 'none',
+                          background: app.status === 'shortlisted' ? '#f0fdf4' : '#f8f7f5',
+                          color: '#15803d', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          opacity: updatingId === app.id ? 0.5 : 1,
+                        }}
                       >
-                        <HowToReg />
+                        <FiCheck size={13} />
                       </button>
-                      <button 
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => handleStatusChange(app.id, 'Rejected')}
+
+                      {/* Reject */}
+                      <button
+                        onClick={() => handleStatus(app.id, 'rejected')}
+                        disabled={updatingId === app.id || app.status === 'rejected'}
                         title="Reject"
+                        style={{
+                          width: 28, height: 28, borderRadius: 6, border: 'none',
+                          background: app.status === 'rejected' ? '#fef2f2' : '#f8f7f5',
+                          color: '#dc2626', cursor: 'pointer', display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          opacity: updatingId === app.id ? 0.5 : 1,
+                        }}
                       >
-                        <Cancel />
+                        <FiX size={13} />
                       </button>
-                      <button 
-                        className="text-gray-600 hover:text-gray-900"
-                        title="View Documents"
-                      >
-                        <Download />
-                      </button>
-                      <button 
-                        className="text-gray-600 hover:text-gray-900"
-                        title="Contact Applicant"
-                      >
-                        <Mail />
-                      </button>
+
+                      {/* Download CV */}
+                      {app.cv && (
+                        <a
+                          href={app.cv}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Download CV"
+                          style={{
+                            width: 28, height: 28, borderRadius: 6,
+                            background: '#f8f7f5', color: '#64748b',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          <FiDownload size={13} />
+                        </a>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -231,23 +347,19 @@ const ApplicationManagement = () => {
             </tbody>
           </table>
         </div>
-        </>
-      )}
-        
-        <div className="bg-gray-50 px-6 py-3 flex items-center justify-between border-t border-gray-200">
-          <div className="text-sm text-gray-500">
-            Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredApplications.length}</span> of{' '}
-            <span className="font-medium">{applications.length}</span> applications
+
+        {/* Footer */}
+        {!loading && filtered.length > 0 && (
+          <div style={{
+            padding: '10px 16px', borderTop: '1px solid #f0eded',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            background: '#faf9f9',
+          }}>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+              Showing <strong style={{ color: '#374151' }}>{filtered.length}</strong> of <strong style={{ color: '#374151' }}>{applications.length}</strong> applications
+            </span>
           </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-              Next
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
