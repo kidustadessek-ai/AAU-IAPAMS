@@ -1,4 +1,5 @@
-import { FiBriefcase, FiFileText, FiCheckSquare, FiUsers } from 'react-icons/fi';
+import { FiBriefcase, FiFileText, FiCheckSquare, FiUsers, FiTrendingUp } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 const CARDS = [
   {
@@ -8,22 +9,25 @@ const CARDS = [
     icon: FiBriefcase,
     accent: '#7B1113',
     light: '#fdf0f0',
+    trend: '+12%',
   },
   {
     key: 'totalApplications',
     label: 'Total Applications',
     sub: 'All time',
     icon: FiFileText,
-    accent: '#1e40af',
+    accent: '#3b82f6',
     light: '#eff6ff',
+    trend: '+24%',
   },
   {
     key: 'shortlisted',
     label: 'Shortlisted',
     sub: 'Qualified candidates',
     icon: FiCheckSquare,
-    accent: '#15803d',
+    accent: '#10b981',
     light: '#f0fdf4',
+    trend: '+8%',
   },
   {
     key: 'evaluators',
@@ -32,6 +36,7 @@ const CARDS = [
     icon: FiUsers,
     accent: '#C9A84C',
     light: '#fefce8',
+    trend: '+5%',
   },
 ];
 
@@ -60,61 +65,109 @@ const StatsCards = ({ stats, loading }) => {
           0% { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-5px); }
+        }
       `}</style>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: 16,
-        marginBottom: 20,
+        marginBottom: 24,
       }}>
-        {CARDS.map(({ key, label, sub, icon: Icon, accent, light }) => (
-          <div key={key} style={{
-            background: '#fff',
-            borderRadius: 12,
-            border: '1px solid #f0eded',
-            padding: '20px 22px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 14,
-            position: 'relative',
-            overflow: 'hidden',
-          }}>
+        {CARDS.map(({ key, label, sub, icon: Icon, accent, light, trend }, index) => (
+          <motion.div
+            key={key}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.4 }}
+            whileHover={{ y: -4, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}
+            style={{
+              background: '#fff',
+              borderRadius: 12,
+              border: '1px solid #f0eded',
+              padding: '22px 24px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              position: 'relative',
+              overflow: 'hidden',
+              cursor: 'pointer',
+            }}
+          >
+            {/* Background decoration */}
+            <div style={{
+              position: 'absolute',
+              top: -20,
+              right: -20,
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              background: `${accent}08`,
+              filter: 'blur(30px)',
+            }} />
+
             {/* Top row: label + icon */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
               <div>
-                <p style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.07em', margin: 0 }}>
+                <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
                   {label}
                 </p>
-                <p style={{ fontSize: '0.68rem', color: '#c4bfbf', margin: '2px 0 0', fontWeight: 400 }}>
+                <p style={{ fontSize: '0.7rem', color: '#c4bfbf', margin: '3px 0 0', fontWeight: 400 }}>
                   {sub}
                 </p>
               </div>
               <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: light,
+                width: 44, height: 44, borderRadius: 12,
+                background: `linear-gradient(135deg, ${accent} 0%, ${accent}dd 100%)`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 flexShrink: 0,
+                boxShadow: `0 4px 12px ${accent}40`,
               }}>
-                <Icon size={17} color={accent} />
+                <Icon size={20} color="#fff" />
               </div>
             </div>
 
-            {/* Value */}
+            {/* Value and trend */}
             {loading ? <Skeleton /> : (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontSize: '2.1rem', fontWeight: 800, color: '#1a1a2e', lineHeight: 1, letterSpacing: -1 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '2.4rem', fontWeight: 800, color: '#1a1a2e', lineHeight: 1, letterSpacing: -1.5 }}>
                   {values[key]}
                 </span>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '4px 8px',
+                  background: `${accent}15`,
+                  borderRadius: 6,
+                  marginBottom: 4,
+                }}>
+                  <FiTrendingUp size={12} color={accent} />
+                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: accent }}>{trend}</span>
+                </div>
               </div>
             )}
 
-            {/* Bottom accent line */}
+            {/* Progress bar */}
             <div style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
-              height: 3, background: accent, opacity: 0.15, borderRadius: '0 0 12px 12px',
-            }} />
-          </div>
+              height: 4, background: `${accent}15`,
+            }}>
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ delay: index * 0.1 + 0.3, duration: 0.8, ease: 'easeOut' }}
+                style={{
+                  height: '100%',
+                  background: `linear-gradient(90deg, ${accent} 0%, ${accent}cc 100%)`,
+                  borderRadius: '0 0 12px 12px',
+                }}
+              />
+            </div>
+          </motion.div>
         ))}
       </div>
     </>
