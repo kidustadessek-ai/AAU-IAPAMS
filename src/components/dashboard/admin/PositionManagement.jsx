@@ -6,6 +6,7 @@ import { createPosition, getPositions, deletePosition, closePosition, updatePosi
 import { getApplicationsByPosition, updateApplicationStatus } from '../../../services/applicationService';
 import { getUsers } from '../../../pages/admin/users/_lib/user.actions';
 import { getColleges, getDepartments } from '../../../data/aauStructure';
+import DocumentPreview from '../../common/DocumentPreview';
 
 
 const PositionManagement = () => {
@@ -29,6 +30,7 @@ const PositionManagement = () => {
   const [updatingStatus, setUpdatingStatus] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editingPosition, setEditingPosition] = useState(null);
+  const [previewDoc, setPreviewDoc] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -1227,47 +1229,41 @@ const PositionManagement = () => {
                             <td style={{ padding: '12px 20px' }}>
                               <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                                 {app.documents?.cv && (
-                                  <a
-                                    href={app.documents.cv}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                  <button
+                                    onClick={() => setPreviewDoc(app.documents.cv)}
                                     style={{
                                       fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px',
                                       borderRadius: 4, background: '#fdf0f0', color: '#7B1113',
-                                      textDecoration: 'none',
+                                      border: 'none', cursor: 'pointer',
                                     }}
                                   >
                                     CV
-                                  </a>
+                                  </button>
                                 )}
                                 {app.documents?.coverLetter && (
-                                  <a
-                                    href={app.documents.coverLetter}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                  <button
+                                    onClick={() => setPreviewDoc(app.documents.coverLetter)}
                                     style={{
                                       fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px',
                                       borderRadius: 4, background: '#fdf0f0', color: '#7B1113',
-                                      textDecoration: 'none',
+                                      border: 'none', cursor: 'pointer',
                                     }}
                                   >
                                     Cover
-                                  </a>
+                                  </button>
                                 )}
                                 {app.documents?.certificates?.map((cert, i) => (
-                                  <a
+                                  <button
                                     key={i}
-                                    href={cert}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    onClick={() => setPreviewDoc(cert)}
                                     style={{
                                       fontSize: '0.68rem', fontWeight: 600, padding: '3px 8px',
                                       borderRadius: 4, background: '#fdf0f0', color: '#7B1113',
-                                      textDecoration: 'none',
+                                      border: 'none', cursor: 'pointer',
                                     }}
                                   >
                                     Cert {i + 1}
-                                  </a>
+                                  </button>
                                 ))}
                               </div>
                             </td>
@@ -1337,6 +1333,9 @@ const PositionManagement = () => {
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* Document Preview */}
+      {previewDoc && <DocumentPreview url={previewDoc} onClose={() => setPreviewDoc(null)} />}
     </div>
   );
 };

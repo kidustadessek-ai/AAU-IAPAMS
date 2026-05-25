@@ -3,6 +3,7 @@ import { FiFileText, FiCalendar, FiUser, FiDownload, FiCheckCircle, FiClock, FiX
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/authContext';
 import { getMyApplications } from '../../services/applicationService';
+import DocumentPreview from '../../components/common/DocumentPreview';
 
 const STATUS_STYLE = {
   pending:      { text: 'Applied',      bg: '#fefce8', color: '#a16207', icon: FiClock },
@@ -16,6 +17,7 @@ const MyApplications = () => {
   const { auth } = useAuth();
   const [applications, setApplications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   useEffect(() => { fetchApplications(); }, []);
 
@@ -136,33 +138,33 @@ const MyApplications = () => {
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {app.documents.cv ? (
-                      <a href={app.documents.cv} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', border: '1px solid #f8e5e5', transition: 'all 0.15s' }}
+                      <button onClick={() => setPreviewDoc(app.documents.cv)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, border: '1px solid #f8e5e5', transition: 'all 0.15s', cursor: 'pointer' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#fce5e5'}
                         onMouseLeave={e => e.currentTarget.style.background = '#fdf0f0'}>
                         <FiDownload size={12} /> View CV
-                      </a>
+                      </button>
                     ) : (
                       <span style={{ fontSize: '0.72rem', color: '#cbd5e1', padding: '6px 12px', borderRadius: 7, background: '#f8fafc' }}>No CV uploaded</span>
                     )}
                     {app.documents.coverLetter ? (
-                      <a href={app.documents.coverLetter} target="_blank" rel="noopener noreferrer"
-                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', border: '1px solid #f8e5e5', transition: 'all 0.15s' }}
+                      <button onClick={() => setPreviewDoc(app.documents.coverLetter)}
+                        style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, border: '1px solid #f8e5e5', transition: 'all 0.15s', cursor: 'pointer' }}
                         onMouseEnter={e => e.currentTarget.style.background = '#fce5e5'}
                         onMouseLeave={e => e.currentTarget.style.background = '#fdf0f0'}>
                         <FiDownload size={12} /> Cover Letter
-                      </a>
+                      </button>
                     ) : (
                       <span style={{ fontSize: '0.72rem', color: '#cbd5e1', padding: '6px 12px', borderRadius: 7, background: '#f8fafc' }}>No cover letter</span>
                     )}
                     {app.documents.certificates && app.documents.certificates.length > 0 ? (
                       app.documents.certificates.map((cert, i) => (
-                        <a key={i} href={cert} target="_blank" rel="noopener noreferrer"
-                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, textDecoration: 'none', border: '1px solid #f8e5e5', transition: 'all 0.15s' }}
+                        <button key={i} onClick={() => setPreviewDoc(cert)}
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 7, background: '#fdf0f0', color: '#7B1113', fontSize: '0.72rem', fontWeight: 600, border: '1px solid #f8e5e5', transition: 'all 0.15s', cursor: 'pointer' }}
                           onMouseEnter={e => e.currentTarget.style.background = '#fce5e5'}
                           onMouseLeave={e => e.currentTarget.style.background = '#fdf0f0'}>
                           <FiDownload size={12} /> Certificate {i + 1}
-                        </a>
+                        </button>
                       ))
                     ) : (
                       <span style={{ fontSize: '0.72rem', color: '#cbd5e1', padding: '6px 12px', borderRadius: 7, background: '#f8fafc' }}>No certificates</span>
@@ -179,6 +181,9 @@ const MyApplications = () => {
           })}
         </div>
       )}
+
+      {/* Document Preview */}
+      {previewDoc && <DocumentPreview url={previewDoc} onClose={() => setPreviewDoc(null)} />}
     </div>
   );
 };

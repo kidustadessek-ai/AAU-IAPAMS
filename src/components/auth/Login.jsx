@@ -34,6 +34,10 @@ const Login = () => {
     setIsLoading(true);
     try {
       const user = await login(credentials.username, credentials.password);
+      if (user.role !== selectedRole) {
+        toast.error(`Invalid credentials for ${selectedRole} role`);
+        return;
+      }
       toast.success('Welcome back!');
       navigate(`/${user.role}/dashboard`);
     } catch (error) {

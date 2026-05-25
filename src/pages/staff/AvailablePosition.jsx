@@ -5,6 +5,7 @@ import { getPositions } from '../../services/positionService';
 import { useAuth } from '../../context/authContext';
 import { getMyApplications, applyToPosition } from '../../services/applicationService';
 import { getColleges } from '../../data/aauStructure';
+import DocumentPreview from '../../components/common/DocumentPreview';
 
 const STATUS_STYLE = {
   pending:      { text: 'Applied',      bg: '#fefce8', color: '#a16207' },
@@ -32,6 +33,7 @@ const AvailablePositions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState({ cv: null, coverLetter: null, certificates: [] });
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   const colleges = getColleges();
 
@@ -295,9 +297,9 @@ const AvailablePositions = () => {
                     </div>
                     {app?.documents && (
                       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                        {app.documents.cv && <a href={app.documents.cv} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', textDecoration: 'none' }}>View CV</a>}
-                        {app.documents.coverLetter && <a href={app.documents.coverLetter} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', textDecoration: 'none' }}>Cover Letter</a>}
-                        {app.documents.certificates?.map((c, i) => <a key={i} href={c} target="_blank" rel="noreferrer" style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', textDecoration: 'none' }}>Certificate {i + 1}</a>)}
+                        {app.documents.cv && <button onClick={() => setPreviewDoc(app.documents.cv)} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', border: 'none', cursor: 'pointer' }}>View CV</button>}
+                        {app.documents.coverLetter && <button onClick={() => setPreviewDoc(app.documents.coverLetter)} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', border: 'none', cursor: 'pointer' }}>Cover Letter</button>}
+                        {app.documents.certificates?.map((c, i) => <button key={i} onClick={() => setPreviewDoc(c)} style={{ fontSize: '0.72rem', fontWeight: 600, padding: '4px 10px', borderRadius: 6, background: '#fdf0f0', color: '#7B1113', border: 'none', cursor: 'pointer' }}>Certificate {i + 1}</button>)}
                       </div>
                     )}
                   </div>
@@ -366,6 +368,9 @@ const AvailablePositions = () => {
           </div>
         </div>
       )}
+
+      {/* Document Preview */}
+      {previewDoc && <DocumentPreview url={previewDoc} onClose={() => setPreviewDoc(null)} />}
     </div>
   );
 };

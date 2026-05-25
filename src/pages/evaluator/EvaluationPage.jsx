@@ -5,6 +5,7 @@ import { FiFileText, FiCheckCircle, FiClock, FiUsers } from 'react-icons/fi';
 import { useAuth } from '../../context/authContext';
 import { getUserProfile, submitEvaluation, getEvaluations } from '../../services/applicationService';
 import toast from 'react-hot-toast';
+import DocumentPreview from '../../components/common/DocumentPreview';
 
 
 
@@ -19,6 +20,7 @@ const EvaluationPage = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState('');
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   const { auth } = useAuth();
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -424,10 +426,8 @@ const EvaluationPage = () => {
                   </h3>
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <a
-                    href={selectedApp.documents?.cv}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => setPreviewDoc(selectedApp.documents?.cv)}
                     style={{
                       padding: '8px 16px',
                       borderRadius: 8,
@@ -436,7 +436,7 @@ const EvaluationPage = () => {
                       color: '#7B1113',
                       fontSize: '0.8rem',
                       fontWeight: 600,
-                      textDecoration: 'none',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
@@ -451,15 +451,13 @@ const EvaluationPage = () => {
                       e.currentTarget.style.color = '#7B1113';
                     }}
                   >
-                    <DownloadIcon style={{ fontSize: 16 }} />
-                    Download CV
-                  </a>
+                    <VisibilityIcon style={{ fontSize: 16 }} />
+                    View CV
+                  </button>
                   
                   {selectedApp.documents?.coverLetter && (
-                    <a
-                      href={selectedApp.documents?.coverLetter}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => setPreviewDoc(selectedApp.documents?.coverLetter)}
                       style={{
                         padding: '8px 16px',
                         borderRadius: 8,
@@ -468,7 +466,7 @@ const EvaluationPage = () => {
                         color: '#7B1113',
                         fontSize: '0.8rem',
                         fontWeight: 600,
-                        textDecoration: 'none',
+                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
@@ -483,17 +481,15 @@ const EvaluationPage = () => {
                         e.currentTarget.style.color = '#7B1113';
                       }}
                     >
-                      <DownloadIcon style={{ fontSize: 16 }} />
-                      Download Cover Letter
-                    </a>
+                      <VisibilityIcon style={{ fontSize: 16 }} />
+                      View Cover Letter
+                    </button>
                   )}
                   
                   {selectedApp.documents?.certificates?.map((cert, index) => (
-                    <a
+                    <button
                       key={index}
-                      href={cert}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      onClick={() => setPreviewDoc(cert)}
                       style={{
                         padding: '8px 16px',
                         borderRadius: 8,
@@ -502,7 +498,7 @@ const EvaluationPage = () => {
                         color: '#7B1113',
                         fontSize: '0.8rem',
                         fontWeight: 600,
-                        textDecoration: 'none',
+                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         gap: 6,
@@ -517,9 +513,9 @@ const EvaluationPage = () => {
                         e.currentTarget.style.color = '#7B1113';
                       }}
                     >
-                      <DownloadIcon style={{ fontSize: 16 }} />
+                      <VisibilityIcon style={{ fontSize: 16 }} />
                       Certificate {index + 1}
-                    </a>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1072,6 +1068,9 @@ const EvaluationPage = () => {
           </button>
         </DialogActions>
       </Dialog>
+
+      {/* Document Preview */}
+      {previewDoc && <DocumentPreview url={previewDoc} onClose={() => setPreviewDoc(null)} />}
     </div>
   );
 };

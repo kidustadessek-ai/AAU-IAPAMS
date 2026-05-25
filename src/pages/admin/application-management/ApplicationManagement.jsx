@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
 import { getColleges } from '../../../data/aauStructure';
 import toast from 'react-hot-toast';
-import { FiSearch, FiFilter, FiChevronDown, FiDownload, FiCheck, FiX } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiChevronDown, FiEye, FiCheck, FiX } from 'react-icons/fi';
+import DocumentPreview from '../../../components/common/DocumentPreview';
 
 const STATUS_CONFIG = {
   pending:      { label: 'Pending',      bg: '#fefce8', color: '#a16207', dot: '#ca8a04' },
@@ -43,6 +44,7 @@ const ApplicationManagement = () => {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [filters, setFilters] = useState({ status: 'all', college: 'all', search: '' });
+  const [previewDoc, setPreviewDoc] = useState(null);
 
   const colleges = getColleges();
 
@@ -81,6 +83,10 @@ const ApplicationManagement = () => {
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const handleViewDoc = (docUrl) => {
+    setPreviewDoc(docUrl);
   };
 
   const filtered = applications.filter(a =>
@@ -323,22 +329,20 @@ const ApplicationManagement = () => {
                         <FiX size={13} />
                       </button>
 
-                      {/* Download CV */}
+                      {/* View CV */}
                       {app.cv && (
-                        <a
-                          href={app.cv}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          title="Download CV"
+                        <button
+                          onClick={() => handleViewDoc(app.cv)}
+                          title="View CV"
                           style={{
-                            width: 28, height: 28, borderRadius: 6,
+                            width: 28, height: 28, borderRadius: 6, border: 'none',
                             background: '#f8f7f5', color: '#64748b',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            textDecoration: 'none',
+                            cursor: 'pointer',
                           }}
                         >
-                          <FiDownload size={13} />
-                        </a>
+                          <FiEye size={13} />
+                        </button>
                       )}
                     </div>
                   </td>
@@ -361,6 +365,9 @@ const ApplicationManagement = () => {
           </div>
         )}
       </div>
+
+      {/* Document Preview Modal */}
+      {previewDoc && <DocumentPreview url={previewDoc} onClose={() => setPreviewDoc(null)} />}
     </div>
   );
 };
