@@ -1,16 +1,32 @@
 import nodemailer from 'nodemailer';
+import { logger } from './logger.js';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+let transporter = null;
+
+try {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      secure: false,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  } else {
+    logger.warn('Email configuration incomplete. Email functionality disabled.');
+  }
+} catch (error) {
+  logger.error('Failed to initialize email transporter', { error: error.message });
+}
 
 export const sendPasswordResetEmail = async (email, resetToken) => {
+  if (!transporter) {
+    logger.warn('Email not configured. Cannot send password reset email.');
+    throw new Error('Email service is not configured. Please contact administrator.');
+  }
+
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
   await transporter.sendMail({
@@ -33,6 +49,11 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
 };
 
 export const sendWelcomeEmail = async (email, username) => {
+  if (!transporter) {
+    logger.warn('Email not configured. Skipping welcome email.');
+    return;
+  }
+
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { MIN_PASSWORD_LENGTH, BCRYPT_SALT_ROUNDS, USER_STATUS, USER_ROLES } from '../constants/index.js';
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,8 +22,8 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [6, 'Password must be at least 6 characters'],
-      select: false,
+      minlength: [MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`],
+      select: false
     },
     fullName: {
       type: String,
@@ -31,8 +32,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'staff', 'evaluator'],
-      default: 'staff',
+      enum: Object.values(USER_ROLES),
+      default: USER_ROLES.STAFF,
     },
     department: {
       type: String,
@@ -69,8 +70,8 @@ const userSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive', 'suspended'],
-      default: 'active',
+      enum: Object.values(USER_STATUS),
+      default: USER_STATUS.ACTIVE,
     },
     resetPasswordToken: {
       type: String,
@@ -89,11 +90,15 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash password before saving
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
+userSchema.index({ role: 1, status: 1 });
+userSchema.index({ department: 1 });
+
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(BCRYPT_SALT_ROUNDS);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
