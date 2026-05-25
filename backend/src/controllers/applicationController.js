@@ -1,6 +1,8 @@
 import Application from '../models/Application.js';
 import Position from '../models/Position.js';
+import User from '../models/User.js';
 import { uploadToCloudinary } from '../utils/upload.js';
+import { sendApplicationStatusUpdate, sendAdminNewApplicationNotification } from '../services/emailService.js';
 
 // @desc    Get all applications
 // @route   GET /api/v1/applications
@@ -193,6 +195,13 @@ export const createApplication = async (req, res) => {
       .populate('position', 'title department deadline')
       .populate('applicant', 'fullName email department');
 
+    // Send notification to admin (non-blocking)
+    const admins = await User.find({ role: 'admin', status: 'active' });
+    admins.forEach(admin => {
+      sendAdminNewApplicationNotification(admin.email, populatedApplication)
+        .catch(err => console.error('Admin notification failed:', err));
+    });
+
     res.status(201).json({
       success: true,
       message: 'Application submitted successfully',
@@ -308,6 +317,10 @@ export const updateApplicationStatus = async (req, res) => {
     const updatedApplication = await Application.findById(id)
       .populate('position', 'title department')
       .populate('applicant', 'fullName email');
+
+    // Send status update email (non-blocking)
+    sendApplicationStatusUpdate(updatedApplication, status)
+      .catch(err => console.error('Status update email failed:', err));
 
     res.json({
       success: true,

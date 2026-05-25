@@ -1,6 +1,6 @@
 import User from '../models/User.js';
 import { generateAccessToken, generateRefreshToken, generateResetToken, verifyResetToken, verifyRefreshToken } from '../utils/token.js';
-import { sendPasswordResetEmail, sendWelcomeEmail } from '../utils/email.js';
+import { sendLoginNotification, sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 import { uploadToCloudinary } from '../utils/upload.js';
 
 // @desc    Register new user
@@ -34,7 +34,7 @@ export const register = async (req, res) => {
     });
 
     // Send welcome email (non-blocking)
-    sendWelcomeEmail(email, username).catch(console.error);
+    sendWelcomeEmail(user).catch(err => console.error('Welcome email failed:', err));
 
     res.status(201).json({
       success: true,
@@ -102,6 +102,11 @@ export const login = async (req, res) => {
     // Update last login
     user.lastLogin = new Date();
     await user.save();
+
+    // Send login notification (non-blocking)
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    sendLoginNotification(user, ipAddress, userAgent).catch(err => console.error('Login notification failed:', err));
 
     // Generate tokens
     const accessToken = generateAccessToken(user._id);

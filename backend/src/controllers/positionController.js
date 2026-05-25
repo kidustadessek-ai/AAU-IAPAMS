@@ -1,5 +1,7 @@
 import Position from '../models/Position.js';
 import Application from '../models/Application.js';
+import User from '../models/User.js';
+import { sendEvaluatorAssignment } from '../services/emailService.js';
 
 // @desc    Get all positions
 // @route   GET /api/v1/positions
@@ -144,6 +146,15 @@ export const updatePosition = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Position not found',
+      });
+    }
+
+    // If evaluators were updated, send notifications
+    if (updates.evaluators && Array.isArray(updates.evaluators)) {
+      const applicationsCount = await Application.countDocuments({ position: id });
+      position.evaluators.forEach(evaluator => {
+        sendEvaluatorAssignment(evaluator, position, applicationsCount)
+          .catch(err => console.error('Evaluator notification failed:', err));
       });
     }
 
