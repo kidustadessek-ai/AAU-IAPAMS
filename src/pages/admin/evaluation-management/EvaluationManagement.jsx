@@ -36,7 +36,8 @@ const EvaluationManagement = () => {
         deadline: app.position?.deadline ? new Date(app.position.deadline).toLocaleDateString() : 'N/A'
       })));
     } catch (error) {
-      toast.error('Failed to load evaluations');
+      console.error('Fetch evaluations error:', error);
+      setEvaluations([]);
     } finally {
       setLoading(false);
     }

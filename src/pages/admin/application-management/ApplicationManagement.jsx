@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { api } from '../../../utils/api';
 import { getColleges } from '../../../data/aauStructure';
 import toast from 'react-hot-toast';
-import { FiSearch, FiFilter, FiChevronDown, FiEye, FiCheck, FiX } from 'react-icons/fi';
+import { FiSearch, FiFilter, FiChevronDown, FiEye, FiCheck, FiX, FiDownload } from 'react-icons/fi';
 import DocumentPreview from '../../../components/common/DocumentPreview';
 
 const STATUS_CONFIG = {
@@ -45,15 +45,19 @@ const ApplicationManagement = () => {
   const [updatingId, setUpdatingId] = useState(null);
   const [filters, setFilters] = useState({ status: 'all', college: 'all', search: '' });
   const [previewDoc, setPreviewDoc] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [total, setTotal] = useState(0);
 
   const colleges = getColleges();
 
-  useEffect(() => { fetchApplications(); }, []);
+  useEffect(() => { fetchApplications(); }, [page]);
 
   const fetchApplications = async () => {
     try {
-      const res = await api.get('/applications');
+      const res = await api.get('/applications', { params: { page, limit } });
       const apps = res.data?.data || [];
+      setTotal(res.data?.meta?.total || 0);
       setApplications(apps.map(app => ({
         id: app._id,
         name: app.applicant?.fullName || app.applicant?.username || 'Unknown',
@@ -65,8 +69,10 @@ const ApplicationManagement = () => {
         status: app.status,
         cv: app.documents?.cv || null,
       })));
-    } catch {
-      toast.error('Failed to load applications');
+    } catch (error) {
+      console.error('Fetch applications error:', error);
+      setApplications([]);
+      setTotal(0);
     } finally {
       setLoading(false);
     }
@@ -87,6 +93,28 @@ const ApplicationManagement = () => {
 
   const handleViewDoc = (docUrl) => {
     setPreviewDoc(docUrl);
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Applicant', 'Email', 'Position', 'College', 'Department', 'Applied', 'Status'];
+    const rows = filtered.map(app => [
+      app.name,
+      app.email,
+      app.position,
+      app.college,
+      app.department,
+      app.date,
+      app.status
+    ]);
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `applications_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV exported successfully');
   };
 
   const filtered = applications.filter(a =>
@@ -134,7 +162,7 @@ const ApplicationManagement = () => {
         boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
       }}>
         {/* Search */}
-        <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
+        <div style={{ position: 'relative', flex: '1 1 200px', minWidth: 200 }}>
           <FiSearch size={14} color="#94a3b8" style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }} />
           <input
             type="text"
@@ -150,7 +178,7 @@ const ApplicationManagement = () => {
         </div>
 
         {/* Status filter */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', flex: '0 1 auto' }}>
           <select
             value={filters.status}
             onChange={e => setFilters({ ...filters, status: e.target.value })}
@@ -172,7 +200,7 @@ const ApplicationManagement = () => {
         </div>
 
         {/* College filter */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', flex: '0 1 auto' }}>
           <select
             value={filters.college}
             onChange={e => setFilters({ ...filters, college: e.target.value })}
@@ -203,9 +231,23 @@ const ApplicationManagement = () => {
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+        <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500, flex: '0 0 auto' }}>
           {filtered.length} result{filtered.length !== 1 ? 's' : ''}
         </span>
+
+        <button
+          onClick={exportToCSV}
+          disabled={filtered.length === 0}
+          style={{
+            padding: '8px 14px', borderRadius: 8, border: '1px solid #ede9e9',
+            background: filtered.length === 0 ? '#f8f7f5' : '#7B1113', 
+            color: filtered.length === 0 ? '#94a3b8' : '#fff',
+            fontSize: '0.78rem', cursor: filtered.length === 0 ? 'not-allowed' : 'pointer',
+            fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <FiDownload size={14} /> Export CSV
+        </button>
       </div>
 
       {/* Table */}
@@ -360,8 +402,34 @@ const ApplicationManagement = () => {
             background: '#faf9f9',
           }}>
             <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              Showing <strong style={{ color: '#374151' }}>{filtered.length}</strong> of <strong style={{ color: '#374151' }}>{applications.length}</strong> applications
+              Showing <strong style={{ color: '#374151' }}>{(page - 1) * limit + 1}-{Math.min(page * limit, total)}</strong> of <strong style={{ color: '#374151' }}>{total}</strong> applications
             </span>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                style={{
+                  padding: '6px 12px', borderRadius: 6, border: '1px solid #ede9e9',
+                  background: page === 1 ? '#f8f7f5' : '#fff', color: page === 1 ? '#94a3b8' : '#374151',
+                  fontSize: '0.75rem', cursor: page === 1 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Previous
+              </button>
+              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Page {page} of {Math.ceil(total / limit)}</span>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= Math.ceil(total / limit)}
+                style={{
+                  padding: '6px 12px', borderRadius: 6, border: '1px solid #ede9e9',
+                  background: page >= Math.ceil(total / limit) ? '#f8f7f5' : '#fff',
+                  color: page >= Math.ceil(total / limit) ? '#94a3b8' : '#374151',
+                  fontSize: '0.75rem', cursor: page >= Math.ceil(total / limit) ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

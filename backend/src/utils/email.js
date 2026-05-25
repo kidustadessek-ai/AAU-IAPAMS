@@ -32,17 +32,20 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
-    subject: 'Password Reset Request - AAU IAPAMS',
+    subject: 'Password Reset - AAU IAPAMS',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #2e7d32;">Password Reset Request</h2>
-        <p>You requested to reset your password for AAU Internal Academic Position Appointment Management System.</p>
-        <p>Click the button below to reset your password:</p>
-        <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Reset Password</a>
-        <p>Or copy and paste this link into your browser:</p>
-        <p style="color: #666; word-break: break-all;">${resetUrl}</p>
-        <p style="color: #999; font-size: 12px; margin-top: 30px;">This link will expire in 1 hour.</p>
-        <p style="color: #999; font-size: 12px;">If you didn't request this, please ignore this email.</p>
+      <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333">
+        <div style="background:#7B1113;padding:20px;text-align:center">
+          <h1 style="color:#fff;margin:0;font-size:24px">AAU IAPAMS</h1>
+        </div>
+        <div style="padding:30px;background:#f9f9f9">
+          <h2 style="color:#7B1113;margin:0 0 20px">Password Reset Request</h2>
+          <p style="line-height:1.6;margin:0 0 20px">You requested to reset your password. Click the button below to proceed:</p>
+          <div style="text-align:center;margin:30px 0">
+            <a href="${resetUrl}" style="display:inline-block;padding:12px 30px;background:#7B1113;color:#fff;text-decoration:none;border-radius:5px;font-weight:600">Reset Password</a>
+          </div>
+          <p style="font-size:12px;color:#666;margin:20px 0 0">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+        </div>
       </div>
     `,
   });
@@ -60,13 +63,17 @@ export const sendWelcomeEmail = async (email, username) => {
       to: email,
       subject: 'Welcome to AAU IAPAMS',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #2e7d32;">Welcome to AAU IAPAMS!</h2>
-          <p>Hello ${username},</p>
-          <p>Your account has been successfully created for the Addis Ababa University Internal Academic Position Appointment Management System.</p>
-          <p>You can now log in and start using the system.</p>
-          <a href="${process.env.FRONTEND_URL}/login" style="display: inline-block; padding: 12px 24px; background-color: #2e7d32; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0;">Go to Login</a>
-          <p style="color: #999; font-size: 12px; margin-top: 30px;">If you have any questions, please contact the administrator.</p>
+        <div style="max-width:600px;margin:0 auto;font-family:Arial,sans-serif;color:#333">
+          <div style="background:#7B1113;padding:20px;text-align:center">
+            <h1 style="color:#fff;margin:0;font-size:24px">AAU IAPAMS</h1>
+          </div>
+          <div style="padding:30px;background:#f9f9f9">
+            <h2 style="color:#7B1113;margin:0 0 20px">Welcome, ${username}!</h2>
+            <p style="line-height:1.6;margin:0 0 20px">Your account has been created successfully. You can now access the system.</p>
+            <div style="text-align:center;margin:30px 0">
+              <a href="${process.env.FRONTEND_URL}/login" style="display:inline-block;padding:12px 30px;background:#7B1113;color:#fff;text-decoration:none;border-radius:5px;font-weight:600">Login Now</a>
+            </div>
+          </div>
         </div>
       `,
     });

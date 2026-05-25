@@ -100,6 +100,7 @@
 // export default Positions;
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { FiDownload } from 'react-icons/fi';
 
 const Positions = () => {
   const [positions, setPositions] = useState([
@@ -117,6 +118,9 @@ const Positions = () => {
       updatedAt: new Date()
     }
   ]);
+
+  const [page, setPage] = useState(1);
+  const [limit] = useState(5);
 
   const [newPosition, setNewPosition] = useState({
     title: '',
@@ -158,9 +162,40 @@ const Positions = () => {
     toast.success('Position added successfully!');
   };
 
+  const exportToCSV = () => {
+    const headers = ['Title', 'Department', 'Type', 'Deadline', 'Status'];
+    const rows = positions.map(p => [p.title, p.department, p.positionType, p.deadline, p.status]);
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `positions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV exported');
+  };
+
+  const paginatedPositions = positions.slice((page - 1) * limit, page * limit);
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Manage Positions</h2>
+    <div className="space-y-6" style={{ padding: '0 16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <h2 className="text-2xl font-bold text-gray-900">Manage Positions</h2>
+        <button
+          onClick={exportToCSV}
+          disabled={positions.length === 0}
+          style={{
+            padding: '8px 16px', borderRadius: 8, border: 'none',
+            background: positions.length === 0 ? '#f8f7f5' : '#7B1113',
+            color: positions.length === 0 ? '#94a3b8' : '#fff',
+            fontSize: '0.85rem', cursor: positions.length === 0 ? 'not-allowed' : 'pointer',
+            fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+          }}
+        >
+          <FiDownload size={16} /> Export CSV
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
         {['title', 'description', 'department', 'positionType', 'requirements', 'deadline'].map((field) => (
@@ -211,7 +246,7 @@ const Positions = () => {
 
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <ul className="divide-y divide-gray-200">
-          {positions.map((position) => (
+          {paginatedPositions.map((position) => (
             <li key={position.id} className="p-4">
               <div className="flex items-start justify-between">
                 <div>
@@ -234,6 +269,46 @@ const Positions = () => {
             </li>
           ))}
         </ul>
+        {positions.length > limit && (
+          <div style={{
+            padding: '12px 16px', borderTop: '1px solid #e5e7eb',
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            background: '#fafafa', flexWrap: 'wrap', gap: 12,
+          }}>
+            <span style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+              Showing {(page - 1) * limit + 1}-{Math.min(page * limit, positions.length)} of {positions.length}
+            </span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                style={{
+                  padding: '6px 12px', borderRadius: 6, border: '1px solid #d1d5db',
+                  background: page === 1 ? '#f3f4f6' : '#fff',
+                  color: page === 1 ? '#9ca3af' : '#374151',
+                  fontSize: '0.85rem', cursor: page === 1 ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Previous
+              </button>
+              <span style={{ padding: '6px 12px', fontSize: '0.85rem', color: '#6b7280' }}>
+                {page} / {Math.ceil(positions.length / limit)}
+              </span>
+              <button
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= Math.ceil(positions.length / limit)}
+                style={{
+                  padding: '6px 12px', borderRadius: 6, border: '1px solid #d1d5db',
+                  background: page >= Math.ceil(positions.length / limit) ? '#f3f4f6' : '#fff',
+                  color: page >= Math.ceil(positions.length / limit) ? '#9ca3af' : '#374151',
+                  fontSize: '0.85rem', cursor: page >= Math.ceil(positions.length / limit) ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

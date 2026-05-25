@@ -46,8 +46,11 @@ const AvailablePositions = () => {
       if (posRes.success) setPositions(posRes.data || []);
       if (appRes.success) setApplications(Array.isArray(appRes.data.data) ? appRes.data.data : []);
       else setApplications([]);
-    } catch { toast.error('Failed to load data'); }
-    finally { setIsLoading(false); }
+    } catch (error) {
+      console.error('Fetch data error:', error);
+      setPositions([]);
+      setApplications([]);
+    } finally { setIsLoading(false); }
   };
 
   useEffect(() => {
