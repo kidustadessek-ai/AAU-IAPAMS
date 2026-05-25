@@ -335,10 +335,10 @@ const handleSave = () => {
             {/* Tabs */}
             <div style={{
               display: 'flex',
-              borderBottom: '1px solid #f0eded',
               background: '#fafafa',
               padding: '0 24px',
               overflowX: 'auto',
+              borderBottom: '1px solid #f0eded',
             }}>
               {[
                 { id: 'basic', label: 'Basic Info' },
@@ -347,24 +347,40 @@ const handleSave = () => {
                 { id: 'skills', label: 'Skills' },
                 { id: 'social', label: 'Social & Links' },
               ].map(tab => (
-                <button
+                <div
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
                   style={{
-                    padding: '12px 16px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    color: activeTab === tab.id ? '#7B1113' : '#64748b',
-                    borderBottom: activeTab === tab.id ? '2px solid #7B1113' : '2px solid transparent',
-                    transition: 'all 0.2s',
-                    whiteSpace: 'nowrap',
+                    position: 'relative',
                   }}
                 >
-                  {tab.label}
-                </button>
+                  <button
+                    onClick={() => setActiveTab(tab.id)}
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      border: 'none',
+                      background: 'none',
+                      cursor: 'pointer',
+                      color: activeTab === tab.id ? '#7B1113' : '#64748b',
+                      transition: 'all 0.2s',
+                      whiteSpace: 'nowrap',
+                      paddingBottom: '16px',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                  {activeTab === tab.id && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 3,
+                      background: '#7B1113',
+                    }} />
+                  )}
+                </div>
               ))}
             </div>
 
