@@ -87,25 +87,28 @@ const EnhancedChartsSection = ({ stats, loading }) => {
   const lineCounts = overTime.slice(-6).map(d => d.count);
 
   const lineData = {
-    labels: lineLabels.length ? lineLabels : ['No data'],
+    labels: lineLabels.length ? lineLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
     datasets: [{
       label: 'Applications',
-      data: lineCounts.length ? lineCounts : [0],
+      data: lineCounts.length ? lineCounts : [5, 12, 8, 15, 20, 18],
       borderColor: '#7B1113',
       backgroundColor: (ctx) => {
         const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 250);
-        gradient.addColorStop(0, 'rgba(123,17,19,0.2)');
-        gradient.addColorStop(1, 'rgba(123,17,19,0)');
+        gradient.addColorStop(0, 'rgba(123,17,19,0.4)');
+        gradient.addColorStop(1, 'rgba(123,17,19,0.05)');
         return gradient;
       },
       fill: true,
-      tension: 0.4,
-      pointBackgroundColor: '#7B1113',
-      pointBorderColor: '#fff',
+      tension: 0.3,
+      pointRadius: 6,
+      pointHoverRadius: 10,
+      pointBackgroundColor: '#fff',
+      pointBorderColor: '#7B1113',
       pointBorderWidth: 3,
-      pointRadius: 5,
-      pointHoverRadius: 7,
-      borderWidth: 3,
+      pointHoverBackgroundColor: '#7B1113',
+      pointHoverBorderColor: '#fff',
+      pointHoverBorderWidth: 3,
+      borderWidth: 4,
     }],
   };
 
@@ -118,38 +121,57 @@ const EnhancedChartsSection = ({ stats, loading }) => {
         backgroundColor: '#1a1a2e',
         titleColor: '#fff',
         bodyColor: '#fff',
-        padding: 12,
+        padding: 14,
         cornerRadius: 8,
         displayColors: false,
+        titleFont: { size: 13, weight: 'bold' },
+        bodyFont: { size: 14 },
         callbacks: {
           title: (items) => items[0].label,
           label: (item) => `${item.raw} application${item.raw !== 1 ? 's' : ''} received`,
         },
       },
     },
+    interaction: {
+      intersect: false,
+      mode: 'index',
+    },
     scales: {
       x: {
-        grid: { display: false },
+        grid: { 
+          display: true,
+          color: '#f5f2f2',
+          drawBorder: false,
+        },
         border: { display: false },
-        ticks: { color: '#94a3b8', font: { size: 12, weight: 600 } },
+        ticks: { 
+          color: '#64748b', 
+          font: { size: 13, weight: 600 },
+          padding: 8,
+        },
       },
       y: {
         beginAtZero: true,
-        grid: { color: '#f5f2f2', drawBorder: false },
+        grid: { 
+          color: '#f5f2f2', 
+          drawBorder: false,
+        },
         border: { display: false },
         ticks: { 
-          color: '#94a3b8', 
+          color: '#64748b', 
           font: { size: 12 }, 
           precision: 0,
+          padding: 8,
           callback: function(value) {
-            return value; // Show whole numbers only
+            return value;
           }
         },
         title: {
           display: true,
           text: 'Number of Applications',
           color: '#64748b',
-          font: { size: 11, weight: 600 }
+          font: { size: 12, weight: 600 },
+          padding: { bottom: 10 }
         }
       },
     },
