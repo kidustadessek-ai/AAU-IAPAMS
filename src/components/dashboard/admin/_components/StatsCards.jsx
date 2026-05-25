@@ -1,4 +1,4 @@
-import { FiBriefcase, FiFileText, FiCheckSquare, FiUsers, FiTrendingUp } from 'react-icons/fi';
+import { FiBriefcase, FiFileText, FiCheckSquare, FiUsers } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 
 const CARDS = [
@@ -9,7 +9,6 @@ const CARDS = [
     icon: FiBriefcase,
     accent: '#7B1113',
     light: '#fdf0f0',
-    trend: '+12%',
   },
   {
     key: 'totalApplications',
@@ -18,7 +17,6 @@ const CARDS = [
     icon: FiFileText,
     accent: '#3b82f6',
     light: '#eff6ff',
-    trend: '+24%',
   },
   {
     key: 'shortlisted',
@@ -27,7 +25,6 @@ const CARDS = [
     icon: FiCheckSquare,
     accent: '#10b981',
     light: '#f0fdf4',
-    trend: '+8%',
   },
   {
     key: 'evaluators',
@@ -36,7 +33,6 @@ const CARDS = [
     icon: FiUsers,
     accent: '#C9A84C',
     light: '#fefce8',
-    trend: '+5%',
   },
 ];
 
@@ -76,7 +72,7 @@ const StatsCards = ({ stats, loading }) => {
         gap: 16,
         marginBottom: 24,
       }}>
-        {CARDS.map(({ key, label, sub, icon: Icon, accent, light, trend }, index) => (
+        {CARDS.map(({ key, label, sub, icon: Icon, accent, light }, index) => (
           <motion.div
             key={key}
             initial={{ opacity: 0, y: 20 }}
@@ -91,7 +87,7 @@ const StatsCards = ({ stats, loading }) => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 16,
+              gap: 14,
               position: 'relative',
               overflow: 'hidden',
               cursor: 'pointer',
@@ -130,24 +126,12 @@ const StatsCards = ({ stats, loading }) => {
               </div>
             </div>
 
-            {/* Value and trend */}
+            {/* Value */}
             {loading ? <Skeleton /> : (
-              <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+              <div style={{ position: 'relative', zIndex: 1 }}>
                 <span style={{ fontSize: '2.4rem', fontWeight: 800, color: '#1a1a2e', lineHeight: 1, letterSpacing: -1.5 }}>
                   {values[key]}
                 </span>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '4px 8px',
-                  background: `${accent}15`,
-                  borderRadius: 6,
-                  marginBottom: 4,
-                }}>
-                  <FiTrendingUp size={12} color={accent} />
-                  <span style={{ fontSize: '0.7rem', fontWeight: 700, color: accent }}>{trend}</span>
-                </div>
               </div>
             )}
 
