@@ -315,7 +315,7 @@ const ApplicationManagement = () => {
                   {/* College */}
                   <td style={{ padding: '13px 16px' }}>
                     <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
-                      {app.college?.split(' ').slice(0, 3).join(' ')}
+                      {app.college && app.college !== '—' ? app.college.split(' ').slice(0, 3).join(' ') : 'N/A'}
                     </span>
                   </td>
 

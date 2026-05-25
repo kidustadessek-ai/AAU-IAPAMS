@@ -30,7 +30,7 @@ export const getApplications = async (req, res) => {
     const sortOptions = { [sortBy]: sortOrder };
 
     const applications = await Application.find(query)
-      .populate('position', 'title department deadline status')
+      .populate('position', 'title department college deadline status')
       .populate('applicant', 'fullName email department phone')
       .populate('evaluations.evaluator', 'fullName email')
       .limit(limit * 1)
