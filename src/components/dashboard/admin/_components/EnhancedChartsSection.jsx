@@ -123,7 +123,7 @@ const EnhancedChartsSection = ({ stats, loading }) => {
         displayColors: false,
         callbacks: {
           title: (items) => items[0].label,
-          label: (item) => `${item.raw} applications`,
+          label: (item) => `${item.raw} application${item.raw !== 1 ? 's' : ''} received`,
         },
       },
     },
@@ -137,7 +137,20 @@ const EnhancedChartsSection = ({ stats, loading }) => {
         beginAtZero: true,
         grid: { color: '#f5f2f2', drawBorder: false },
         border: { display: false },
-        ticks: { color: '#94a3b8', font: { size: 12 }, precision: 0 },
+        ticks: { 
+          color: '#94a3b8', 
+          font: { size: 12 }, 
+          precision: 0,
+          callback: function(value) {
+            return value; // Show whole numbers only
+          }
+        },
+        title: {
+          display: true,
+          text: 'Number of Applications',
+          color: '#64748b',
+          font: { size: 11, weight: 600 }
+        }
       },
     },
   };
@@ -309,7 +322,7 @@ const EnhancedChartsSection = ({ stats, loading }) => {
               <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>Last 6 months</span>
             }
           >
-            Application Trend
+            Applications Over Time
           </SectionTitle>
           {loading ? <ChartSkeleton height={250} /> : (
             <div style={{ height: 250 }}>
