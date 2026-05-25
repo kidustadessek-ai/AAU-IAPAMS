@@ -6,26 +6,29 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { connectDB } from './src/config/database.js';
 import { errorHandler, notFound } from './src/middleware/errorHandler.js';
+import { validateEnv } from './src/utils/validateEnv.js';
+import { logger } from './src/utils/logger.js';
+import { 
+  DEFAULT_PORT, 
+  RATE_LIMIT_WINDOW_MS, 
+  RATE_LIMIT_MAX_REQUESTS_DEV, 
+  RATE_LIMIT_MAX_REQUESTS_PROD 
+} from './src/constants/index.js';
 
-// Import routes
 import authRoutes from './src/routes/authRoutes.js';
 import positionRoutes from './src/routes/positionRoutes.js';
 import applicationRoutes from './src/routes/applicationRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 
-// Load environment variables
 dotenv.config();
+validateEnv();
 
-// Initialize express app
 const app = express();
 
-// Connect to database
 connectDB();
 
-// Security middleware
 app.use(helmet());
 
-// CORS configuration
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -33,10 +36,9 @@ app.use(
   })
 );
 
-// Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === 'development' ? 1000 : 200,
+  windowMs: RATE_LIMIT_WINDOW_MS,
+  max: process.env.NODE_ENV === 'development' ? RATE_LIMIT_MAX_REQUESTS_DEV : RATE_LIMIT_MAX_REQUESTS_PROD,
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -44,38 +46,31 @@ const limiter = rateLimit({
 
 app.use('/api/', limiter);
 
-// Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// Health check route
 app.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'AAU IAPAMS API is running',
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// API routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/positions', positionRoutes);
 app.use('/api/v1/applications', applicationRoutes);
 app.use('/api/v1/users', userRoutes);
 
-// 404 handler
 app.use(notFound);
-
-// Error handler
 app.use(errorHandler);
 
-// Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || DEFAULT_PORT;
 
 app.listen(PORT, () => {
   console.log(`
@@ -83,17 +78,15 @@ app.listen(PORT, () => {
 ║                                                           ║
 ║   🎓 AAU IAPAMS API Server                                ║
 ║                                                           ║
-║   Environment: ${process.env.NODE_ENV || 'development'}                                  ║
-║   Port: ${PORT}                                              ║
-║   URL: http://localhost:${PORT}                              ║
+║   Environment: ${(process.env.NODE_ENV || 'development').padEnd(43)}║
+║   Port: ${PORT.toString().padEnd(51)}║
+║   URL: http://localhost:${PORT.toString().padEnd(35)}║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
   `);
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('❌ Unhandled Promise Rejection:', err);
-  // Close server & exit process
+  logger.error('Unhandled Promise Rejection', { error: err.message, stack: err.stack });
   process.exit(1);
 });
