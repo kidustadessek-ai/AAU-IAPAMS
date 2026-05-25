@@ -1,206 +1,297 @@
-# AAU-IAPAMS Quick Reference Card
+# Quick Reference Guide - AAU-IAPAMS
 
-## 🚀 Quick Start
+## 🔐 Environment Setup
 
-### Start the Application
+### Required Environment Variables
 ```bash
-# Terminal 1 - Backend (Port 5000)
-cd backend
-npm start
-
-# Terminal 2 - Frontend (Port 5173)
-npm run dev
-```
-
-### Access URLs
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000/api/v1
-
-## 👥 Test Accounts
-
-| Role | Username | Password |
-|------|----------|----------|
-| Admin | `admin` | `Admin@123` |
-| Evaluator | `evaluator1` | `Evaluator@123` |
-| Evaluator | `evaluator2` | `Evaluator@123` |
-| Staff | `staff1` | `Staff@123` |
-| Staff | `staff2` | `Staff@123` |
-| Staff | `staff3` | `Staff@123` |
-
-## 🏛️ AAU Structure (14 Colleges)
-
-### Quick List
-1. College of Business and Economics
-2. College of Education and Language Studies
-3. College of Health Sciences
-4. College of Humanities, Language Studies, Journalism & Communication
-5. College of Natural and Computational Sciences
-6. College of Performing and Visual Arts
-7. College of Social Sciences, Art and Humanities
-8. College of Technology and Built Environment
-9. College of Veterinary Medicine and Agriculture
-10. Institute for Peace and Security Studies
-11. Institute of Educational Research
-12. School of Built Environment
-13. School of Geography and Development Studies
-14. School of Law
-
-## 📝 Common Tasks
-
-### Create a Position (Admin)
-1. Login as admin
-2. Dashboard → Position Management
-3. Click "Post New Job"
-4. Select **College** first
-5. Select **Department** (appears after college)
-6. Fill details and publish
-
-### Apply for Position (Staff)
-1. Login as staff
-2. Dashboard → Available Positions
-3. Filter by college (optional)
-4. Click position card
-5. Upload CV (required)
-6. Upload cover letter (optional)
-7. Submit application
-
-### Review Applications (Admin)
-1. Login as admin
-2. Dashboard → Application Management
-3. Filter by college/status
-4. View applicant details
-5. Shortlist or reject
-
-### Evaluate Applications (Evaluator)
-1. Login as evaluator
-2. Dashboard → Evaluation Management
-3. View assigned applications
-4. Score candidates
-5. Add comments
-6. Submit evaluation
-
-## 🗄️ Database Commands
-
-### Reseed Database
-```bash
-cd backend
-npm run seed
-```
-
-### Clear and Reseed
-The seed script automatically clears existing data before seeding.
-
-## 📁 Key Files
-
-### Frontend
-- `src/data/aauStructure.js` - College-department mapping
-- `src/components/dashboard/admin/PositionManagement.jsx` - Create positions
-- `src/pages/staff/AvailablePosition.jsx` - View/apply positions
-- `src/pages/admin/application-management/ApplicationManagement.jsx` - Manage applications
-
-### Backend
-- `backend/src/models/Position.js` - Position model (with college field)
-- `backend/src/controllers/positionController.js` - Position logic
-- `backend/src/controllers/applicationController.js` - Application logic
-- `backend/src/utils/seed.js` - Database seeding
-
-## 🔧 Environment Variables
-
-### Backend (.env)
-```env
-PORT=5000
+# Database
 MONGODB_URI=mongodb://localhost:27017/aau-iapams
-JWT_SECRET=your-secret-key
-JWT_EXPIRE=7d
+
+# JWT Secrets (CHANGE THESE!)
+JWT_ACCESS_SECRET=your-unique-secret-here
+JWT_REFRESH_SECRET=your-unique-refresh-secret-here
+JWT_RESET_SECRET=your-unique-reset-secret-here
+
+# Cloudinary
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
+
+# Email
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
+EMAIL_PASSWORD=your-app-password
+EMAIL_FROM=AAU IAPAMS <noreply@aau.edu.et>
+
+# Frontend
+FRONTEND_URL=http://localhost:5173
 ```
 
-### Frontend (.env)
-```env
-VITE_API_BASE_URL=http://localhost:5000/api/v1
-```
+## 📦 Installation
 
-## 🎯 Key Features
-
-### Hierarchical Structure
-- ✅ College → Department selection
-- ✅ Dynamic department dropdown
-- ✅ Validation for both fields
-
-### Position Management
-- ✅ Create with college-department
-- ✅ Filter by college
-- ✅ View full hierarchy
-
-### Application System
-- ✅ File uploads (CV, cover letter, certificates)
-- ✅ Status tracking
-- ✅ Evaluation workflow
-
-### User Roles
-- ✅ Admin (full access)
-- ✅ Evaluator (evaluate applications)
-- ✅ Staff (apply for positions)
-
-## 📊 Sample Data
-
-After seeding, you'll have:
-- **6 users** (1 admin, 2 evaluators, 3 staff)
-- **3 positions** across different colleges
-- **3 applications** with various statuses
-
-## 🐛 Troubleshooting
-
-### Backend won't start
 ```bash
-# Check MongoDB is running
-# Check .env file exists
-# Check port 5000 is available
+# Install backend dependencies
+cd backend
+npm install
+
+# Install frontend dependencies
+cd ..
+npm install
 ```
 
-### Frontend won't start
+## 🚀 Running the Application
+
+### Development Mode
 ```bash
-# Check .env file exists
-# Check port 5173 is available
-# Run: npm install
+# Terminal 1 - Backend
+cd backend
+npm run dev
+
+# Terminal 2 - Frontend
+npm run dev
 ```
 
-### Can't login
+### Production Mode
 ```bash
-# Reseed database
+# Backend
+cd backend
+npm start
+
+# Frontend
+npm run build
+npm run preview
+```
+
+## 🔑 Constants Usage
+
+### Import Constants
+```javascript
+// Frontend
+import { USER_ROLES, ERROR_MESSAGES } from '../constants';
+
+// Backend
+import { USER_ROLES, HTTP_STATUS } from '../constants/index.js';
+```
+
+### Common Constants
+```javascript
+// User Roles
+USER_ROLES.ADMIN
+USER_ROLES.STAFF
+USER_ROLES.EVALUATOR
+
+// User Status
+USER_STATUS.ACTIVE
+USER_STATUS.INACTIVE
+USER_STATUS.SUSPENDED
+
+// HTTP Status
+HTTP_STATUS.OK                    // 200
+HTTP_STATUS.CREATED               // 201
+HTTP_STATUS.BAD_REQUEST           // 400
+HTTP_STATUS.UNAUTHORIZED          // 401
+HTTP_STATUS.FORBIDDEN             // 403
+HTTP_STATUS.NOT_FOUND             // 404
+HTTP_STATUS.INTERNAL_SERVER_ERROR // 500
+
+// Application Status
+APPLICATION_STATUS.PENDING
+APPLICATION_STATUS.UNDER_REVIEW
+APPLICATION_STATUS.SHORTLISTED
+APPLICATION_STATUS.REJECTED
+APPLICATION_STATUS.ACCEPTED
+```
+
+## 📝 Logging
+
+### Backend Logging
+```javascript
+import { logger } from '../utils/logger.js';
+
+// Info level
+logger.info('User logged in', { userId: user._id });
+
+// Warning level
+logger.warn('Rate limit approaching', { ip: req.ip });
+
+// Error level
+logger.error('Database error', { error: err.message });
+
+// Debug level
+logger.debug('Processing request', { body: req.body });
+```
+
+### Log Levels
+Set in `.env`:
+```bash
+LOG_LEVEL=INFO  # ERROR | WARN | INFO | DEBUG
+```
+
+## 🔒 Password Requirements
+
+### New Requirements (v2.0)
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- At least one special character (@$!%*?&)
+
+### Example Valid Passwords
+- `MyPass123!`
+- `Secure@2024`
+- `Admin$Pass1`
+
+## 🗄️ Database Indexes
+
+### User Model Indexes
+```javascript
+// Single indexes
+{ email: 1 }
+{ username: 1 }
+{ department: 1 }
+
+// Compound index
+{ role: 1, status: 1 }
+```
+
+## 🛡️ Security Best Practices
+
+### 1. Never Commit Secrets
+```bash
+# Always in .gitignore
+.env
+.env.local
+.env.production
+```
+
+### 2. Use Strong JWT Secrets
+```bash
+# Generate strong secrets
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+### 3. Validate Input
+```javascript
+// Always validate user input
+if (!email || !password) {
+  return res.status(HTTP_STATUS.BAD_REQUEST).json({
+    success: false,
+    message: ERROR_MESSAGES.VALIDATION_ERROR
+  });
+}
+```
+
+### 4. Use Constants
+```javascript
+// ❌ Bad
+if (user.role === 'admin') { }
+
+// ✅ Good
+if (user.role === USER_ROLES.ADMIN) { }
+```
+
+## 🐛 Debugging
+
+### Check Environment Variables
+```bash
+# Backend
+cd backend
+node -e "require('dotenv').config(); console.log(process.env.MONGODB_URI)"
+```
+
+### Check Database Connection
+```bash
+# MongoDB
+mongosh
+show dbs
+use aau-iapams
+db.users.find()
+```
+
+### Check Logs
+```bash
+# Backend logs (if using PM2)
+pm2 logs
+
+# Or check console output
+```
+
+## 📊 Common Commands
+
+### Database
+```bash
+# Seed database
 cd backend
 npm run seed
+
+# Drop database
+mongosh
+use aau-iapams
+db.dropDatabase()
 ```
 
-### Department dropdown empty
-- Make sure you selected a college first
-- Department dropdown is disabled until college is selected
+### Testing
+```bash
+# Run tests (when implemented)
+npm test
 
-## 📚 Documentation
+# Run specific test
+npm test -- user.test.js
+```
 
-- `COMPLETION_SUMMARY.md` - Full implementation summary
-- `AAU_STRUCTURE_UPDATE.md` - Structure implementation details
-- `HIERARCHICAL_STRUCTURE_GUIDE.md` - Visual guide
-- `backend/README.md` - Backend documentation
-- `backend/API_REFERENCE.md` - API endpoints
+### Build
+```bash
+# Frontend build
+npm run build
 
-## ✅ Status
+# Check build size
+npm run build -- --report
+```
 
-- Backend: ✅ Complete
-- Frontend: ✅ Complete
-- Database: ✅ Seeded
-- Structure: ✅ Hierarchical
-- Testing: ✅ Verified
-- Documentation: ✅ Complete
+## 🔧 Troubleshooting
+
+### Issue: Server won't start
+**Solution**: Check environment variables
+```bash
+cd backend
+node src/utils/validateEnv.js
+```
+
+### Issue: MongoDB connection failed
+**Solution**: 
+1. Check MongoDB is running: `mongosh`
+2. Check MONGODB_URI in .env
+3. Check network connectivity
+
+### Issue: CORS errors
+**Solution**: Check FRONTEND_URL in backend .env matches your frontend URL
+
+### Issue: JWT errors
+**Solution**: 
+1. Check JWT secrets are set
+2. Clear localStorage in browser
+3. Login again
+
+## 📚 Additional Resources
+
+- [MongoDB Documentation](https://docs.mongodb.com/)
+- [Express.js Guide](https://expressjs.com/)
+- [React Documentation](https://react.dev/)
+- [Vite Guide](https://vitejs.dev/)
+
+## 🆘 Getting Help
+
+1. Check this guide first
+2. Check `CRITICAL_FIXES_STEP1_COMPLETE.md`
+3. Check error logs
+4. Search existing issues
+5. Create new issue with:
+   - Error message
+   - Steps to reproduce
+   - Environment details
+   - Logs
 
 ---
 
-**Last Updated**: May 24, 2026
-**Version**: 1.0.0
-**Status**: Production Ready
+**Last Updated**: Step 1 Critical Fixes Complete
