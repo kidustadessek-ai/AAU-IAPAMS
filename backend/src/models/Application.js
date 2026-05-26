@@ -69,8 +69,14 @@ const applicationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'under_review', 'shortlisted', 'approved', 'rejected', 'accepted'],
+      enum: ['pending', 'under_review', 'shortlisted', 'approved', 'rejected', 'accepted', 'interview_scheduled'],
       default: 'pending',
+    },
+    interview: {
+      date: { type: String },
+      time: { type: String },
+      location: { type: String },
+      scheduledAt: { type: Date },
     },
     evaluations: [evaluationSchema],
     averageScore: {
