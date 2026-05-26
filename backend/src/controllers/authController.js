@@ -147,10 +147,18 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
+    
+    // Convert user to plain object and handle Map types
+    const userObj = user.toObject();
+    
+    // Convert socialMedia Map to plain object
+    if (userObj.socialMedia instanceof Map) {
+      userObj.socialMedia = Object.fromEntries(userObj.socialMedia);
+    }
 
     res.json({
       success: true,
-      data: user,
+      data: userObj,
     });
   } catch (error) {
     res.status(500).json({
@@ -410,16 +418,31 @@ export const updateUser = async (req, res) => {
     }
 
     // Parse JSON strings for complex fields
-    ['socialMedia', 'education', 'experience', 'skills'].forEach(field => {
-      if (updates[field] && typeof updates[field] === 'string') {
-        try {
-          updates[field] = JSON.parse(updates[field]);
-        } catch (e) {
-          console.error(`Failed to parse ${field}:`, e);
-          updates[field] = field === 'socialMedia' ? {} : [];
+    ['education', 'experience', 'skills'].forEach(field => {
+      if (updates[field]) {
+        if (typeof updates[field] === 'string') {
+          try {
+            updates[field] = JSON.parse(updates[field]);
+          } catch (e) {
+            console.error(`Failed to parse ${field}:`, e);
+            updates[field] = [];
+          }
+        } else if (!Array.isArray(updates[field])) {
+          updates[field] = [];
         }
       }
     });
+
+    // Handle socialMedia separately as it's a Map
+    if (updates.socialMedia && typeof updates.socialMedia === 'string') {
+      try {
+        const parsed = JSON.parse(updates.socialMedia);
+        updates.socialMedia = parsed;
+      } catch (e) {
+        console.error('Failed to parse socialMedia:', e);
+        updates.socialMedia = {};
+      }
+    }
 
     // Handle profile photo upload
     if (req.file) {
@@ -440,7 +463,7 @@ export const updateUser = async (req, res) => {
     }
 
     console.log('Updating user with ID:', userId);
-    console.log('Updates to apply:', updates);
+    console.log('Updates to apply:', JSON.stringify(updates, null, 2));
 
     const user = await User.findByIdAndUpdate(userId, updates, {
       new: true,
@@ -455,11 +478,20 @@ export const updateUser = async (req, res) => {
     }
 
     console.log('User updated successfully');
+    console.log('Updated user data:', JSON.stringify(user, null, 2));
+
+    // Convert user to plain object and handle Map types
+    const userObj = user.toObject();
+    
+    // Convert socialMedia Map to plain object
+    if (userObj.socialMedia instanceof Map) {
+      userObj.socialMedia = Object.fromEntries(userObj.socialMedia);
+    }
 
     res.json({
       success: true,
       message: 'User updated successfully',
-      data: user,
+      data: userObj,
     });
   } catch (error) {
     console.error('Update user error:', error);
