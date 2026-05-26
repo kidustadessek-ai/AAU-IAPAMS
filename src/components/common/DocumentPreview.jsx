@@ -14,22 +14,37 @@ const DocumentPreview = ({ url, onClose }) => {
   const [scale, setScale] = useState(1.0);
   const [docxContent, setDocxContent] = useState('');
   const [pdfError, setPdfError] = useState(false);
+  const [processedUrl, setProcessedUrl] = useState(url);
 
   useEffect(() => {
+    // Process URL to ensure it's viewable (not downloadable)
+    let viewUrl = url;
+    if (url.includes('cloudinary.com') && url.includes('fl_attachment')) {
+      // Remove fl_attachment flag if present
+      viewUrl = url.replace('fl_attachment/', '').replace('fl_attachment,', '');
+    }
+    setProcessedUrl(viewUrl);
     detectFileType();
   }, [url]);
 
   const detectFileType = async () => {
     try {
-      // Try to get extension from URL
       let extension = '';
       
-      // Remove query parameters and get the last part
-      const urlWithoutQuery = url.split('?')[0];
-      const parts = urlWithoutQuery.split('.');
-      
-      if (parts.length > 1) {
-        extension = parts[parts.length - 1].toLowerCase();
+      // For Cloudinary URLs, extract the format from the URL structure
+      if (url.includes('cloudinary.com')) {
+        const match = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+        if (match) {
+          extension = match[1].toLowerCase();
+        }
+      } else {
+        // Remove query parameters and get the last part
+        const urlWithoutQuery = url.split('?')[0];
+        const parts = urlWithoutQuery.split('.');
+        
+        if (parts.length > 1) {
+          extension = parts[parts.length - 1].toLowerCase();
+        }
       }
       
       // If no extension found, try to detect from content-type
@@ -76,7 +91,7 @@ const DocumentPreview = ({ url, onClose }) => {
 
   const loadDocx = async () => {
     try {
-      const response = await fetch(url);
+      const response = await fetch(processedUrl);
       const arrayBuffer = await response.arrayBuffer();
       const result = await mammoth.convertToHtml({ 
         arrayBuffer,
@@ -96,19 +111,26 @@ const DocumentPreview = ({ url, onClose }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const urlParts = url.split('/');
-      const filename = urlParts[urlParts.length - 1].split('?')[0] || 'document';
-      
+      // Create a temporary link and trigger download
       const link = document.createElement('a');
-      const blobUrl = URL.createObjectURL(blob);
-      link.href = blobUrl;
-      link.download = decodeURIComponent(filename);
+      link.href = url;
+      link.target = '_blank';
+      
+      // For Cloudinary URLs, add download flag
+      if (url.includes('cloudinary.com')) {
+        link.href = url.replace('/upload/', '/upload/fl_attachment/');
+      }
+      
+      // Try to extract filename
+      const urlParts = url.split('/');
+      const lastPart = urlParts[urlParts.length - 1].split('?')[0];
+      if (lastPart) {
+        link.download = decodeURIComponent(lastPart);
+      }
+      
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl);
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
@@ -305,26 +327,34 @@ const DocumentPreview = ({ url, onClose }) => {
             </div>
           ) : fileType === 'pdf' ? (
             pdfError ? (
-              // Fallback to iframe if react-pdf fails
-              <iframe
-                src={url}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                }}
-                title="PDF Preview"
-              />
+              // Fallback to Google Docs Viewer or direct iframe
+              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <iframe
+                  src={`https://docs.google.com/viewer?url=${encodeURIComponent(processedUrl)}&embedded=true`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                  }}
+                  title="PDF Preview"
+                />
+              </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
                 <Document
-                  file={url}
+                  file={{
+                    url: processedUrl,
+                    httpHeaders: {
+                      'Accept': 'application/pdf',
+                    },
+                  }}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
                   options={{
                     cMapUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/cmaps/',
                     cMapPacked: true,
                     standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@3.11.174/standard_fonts/',
+                    withCredentials: false,
                   }}
                   loading={
                   <div style={{ textAlign: 'center' }}>
@@ -401,7 +431,7 @@ const DocumentPreview = ({ url, onClose }) => {
             )
           ) : fileType === 'image' ? (
             <img
-              src={url}
+              src={processedUrl}
               alt="Document"
               style={{
                 maxWidth: '100%',
