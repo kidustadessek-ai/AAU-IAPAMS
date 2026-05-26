@@ -47,7 +47,13 @@ const ProfileEditModal = ({
   });
 
   useEffect(() => {
-    setUserData(initialUserData);
+    setUserData({
+      ...initialUserData,
+      education: initialUserData.education || [],
+      experience: initialUserData.experience || [],
+      skills: initialUserData.skills || [],
+      socialMedia: initialUserData.socialMedia || {}
+    });
   }, [initialUserData]);
   const handleAddEducation = () => {
     if (!newEducation.institution.trim()) {
