@@ -20,6 +20,8 @@ export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceTy
         folder: folder,
         resource_type: resourceType,
         allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
+        flags: 'attachment',
+        access_mode: 'public',
       },
       (error, result) => {
         if (error) {
@@ -28,7 +30,9 @@ export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceTy
         } else if (!result) {
           reject(new Error('No result from Cloudinary'));
         } else {
-          resolve(result.secure_url);
+          // Return URL without fl_attachment flag for viewing
+          const viewUrl = result.secure_url.replace('fl_attachment/', '').replace('fl_attachment,', '');
+          resolve(viewUrl);
         }
       }
     );
