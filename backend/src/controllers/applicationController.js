@@ -3,6 +3,7 @@ import Position from '../models/Position.js';
 import User from '../models/User.js';
 import { uploadToCloudinary } from '../utils/upload.js';
 import { sendApplicationStatusUpdate, sendAdminNewApplicationNotification } from '../services/emailService.js';
+import smsService from '../services/smsService.js';
 
 // @desc    Get all applications
 // @route   GET /api/v1/applications
@@ -189,11 +190,12 @@ export const createApplication = async (req, res) => {
       position: positionId,
       applicant: req.user._id,
       documents,
+      description: req.body.description || '',
     });
 
     const populatedApplication = await Application.findById(application._id)
       .populate('position', 'title department deadline')
-      .populate('applicant', 'fullName email department');
+      .populate('applicant', 'fullName email department phone');
 
     // Send notification to admin (non-blocking)
     const admins = await User.find({ role: 'admin', status: 'active' });
@@ -201,6 +203,15 @@ export const createApplication = async (req, res) => {
       sendAdminNewApplicationNotification(admin.email, populatedApplication)
         .catch(err => console.error('Admin notification failed:', err));
     });
+
+    // Send SMS notification (non-blocking)
+    if (populatedApplication.applicant.phone) {
+      smsService.sendApplicationSubmitted(
+        populatedApplication.applicant.phone,
+        populatedApplication.applicant.fullName,
+        populatedApplication.position.title
+      ).catch(err => console.error('SMS notification failed:', err));
+    }
 
     res.status(201).json({
       success: true,
@@ -316,11 +327,28 @@ export const updateApplicationStatus = async (req, res) => {
 
     const updatedApplication = await Application.findById(id)
       .populate('position', 'title department')
-      .populate('applicant', 'fullName email');
+      .populate('applicant', 'fullName email phone');
 
     // Send status update email (non-blocking)
     sendApplicationStatusUpdate(updatedApplication, status)
       .catch(err => console.error('Status update email failed:', err));
+
+    // Send SMS notification (non-blocking)
+    if (updatedApplication.applicant.phone) {
+      if (status === 'approved') {
+        smsService.sendApplicationApproved(
+          updatedApplication.applicant.phone,
+          updatedApplication.applicant.fullName,
+          updatedApplication.position.title
+        ).catch(err => console.error('SMS notification failed:', err));
+      } else if (status === 'rejected') {
+        smsService.sendApplicationRejected(
+          updatedApplication.applicant.phone,
+          updatedApplication.applicant.fullName,
+          updatedApplication.position.title
+        ).catch(err => console.error('SMS notification failed:', err));
+      }
+    }
 
     res.json({
       success: true,
