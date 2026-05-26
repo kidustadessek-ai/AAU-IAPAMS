@@ -39,12 +39,13 @@ export const createUser = async (data, isPublicRegistration = false) => {
 export const updateUserData = async (data) => {
   try {
     const payload = {
+      fullName: data.fullName,
+      email: data.email,
+      phone: data.phone,
       role: data.role,
-      is_deleted: data.is_deleted,
       status: data.status,
-      contact_number: data.contact_number,
     };
-    const res = await api.patch(`/auth/users/${data._id}`, payload);
+    const res = await api.patch(`/auth/users/${data.id || data._id}`, payload);
     toast.success(res.data.message);
     return { success: true, data: res.data.data };
   } catch (error) {

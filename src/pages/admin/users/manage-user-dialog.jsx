@@ -10,6 +10,7 @@ const getValidationSchema = (isUpdated) => {
         fullName: Yup.string().required('Full Name is required'),
         username: Yup.string().required('Username is required'),
         email: Yup.string().email('Invalid email').required('Email is required'),
+        phone: Yup.string().matches(/^\+?[1-9]\d{1,14}$/, 'Phone must be in international format (e.g., +251911234567)'),
         role: Yup.string().required('Role is required'),
         password: isUpdated ? Yup.string() : Yup.string().required('Password is required'),
         confirm_password: isUpdated ? Yup.string() : Yup.string()
@@ -34,6 +35,7 @@ export const ManageUserDialog = (props) => {
         initialValues: {
             username: data?.username || '',
             email: data?.email || '',
+            phone: data?.phone || '',
             role: data?.role || '',
             fullName: data?.fullName || '',
             password: '',
@@ -45,13 +47,14 @@ export const ManageUserDialog = (props) => {
             const payload = {
                 username: values.username,
                 email: values.email,
+                phone: values.phone,
                 role: values.role,
                 fullName: values.fullName,
                 ...(isUpdated ? {} : { password: values.password }),
             };
 
             const res = isUpdated
-                ? await updateUserData({ id: data.id, ...payload })
+                ? await updateUserData({ id: data._id, ...payload })
                 : await createUser(payload);
 
             if (res.success) {
@@ -122,6 +125,25 @@ export const ManageUserDialog = (props) => {
                         />
                         {errors.email && (
                             <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.email}</p>
+                        )}
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: 6 }}>Phone (for SMS notifications)</label>
+                        <input
+                            type="tel"
+                            name="phone"
+                            placeholder="+251911234567"
+                            value={values.phone}
+                            onChange={handleChange}
+                            style={{
+                                width: '100%', padding: '9px 12px', borderRadius: 8,
+                                border: errors.phone ? '1px solid #dc2626' : '1px solid #e2e8f0',
+                                fontSize: '0.8rem', outline: 'none',
+                            }}
+                        />
+                        {errors.phone && (
+                            <p style={{ fontSize: '0.7rem', color: '#dc2626', margin: '4px 0 0' }}>{errors.phone}</p>
                         )}
                     </div>
 

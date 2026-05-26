@@ -146,7 +146,7 @@ export default function Users({ searchParams }) {
     {
       formatter: (row) => (
         <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-          {row.contact_number || '—'}
+          {row.phone || '—'}
         </span>
       ),
       name: 'Phone',
