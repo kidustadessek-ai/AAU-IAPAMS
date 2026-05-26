@@ -62,9 +62,14 @@ const applicationSchema = new mongoose.Schema(
         default: [],
       },
     },
+    description: {
+      type: String,
+      maxlength: [1000, 'Description cannot exceed 1000 characters'],
+      default: '',
+    },
     status: {
       type: String,
-      enum: ['pending', 'under_review', 'shortlisted', 'rejected', 'accepted'],
+      enum: ['pending', 'under_review', 'shortlisted', 'approved', 'rejected', 'accepted'],
       default: 'pending',
     },
     evaluations: [evaluationSchema],
