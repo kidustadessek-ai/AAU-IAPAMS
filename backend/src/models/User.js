@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
+      match: [/^\+?[1-9]\d{1,14}$/, 'Please provide a valid phone number in international format (e.g., +251911234567)'],
     },
     profilePhoto: {
       type: String,
