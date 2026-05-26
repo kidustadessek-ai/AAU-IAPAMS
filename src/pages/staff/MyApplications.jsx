@@ -6,11 +6,12 @@ import { getMyApplications } from '../../services/applicationService';
 import DocumentPreview from '../../components/common/DocumentPreview';
 
 const STATUS_STYLE = {
-  pending:      { text: 'Applied',      bg: '#fefce8', color: '#a16207', icon: FiClock },
-  under_review: { text: 'Under Review', bg: '#eff6ff', color: '#1e40af', icon: FiClock },
-  shortlisted:  { text: 'Shortlisted',  bg: '#f0fdf4', color: '#15803d', icon: FiCheckCircle },
-  rejected:     { text: 'Not Selected', bg: '#fef2f2', color: '#dc2626', icon: FiXCircle },
-  accepted:     { text: 'Accepted',     bg: '#f0fdf4', color: '#15803d', icon: FiCheckCircle },
+  pending:             { text: 'Applied',             bg: '#fefce8', color: '#a16207', icon: FiClock },
+  under_review:        { text: 'Under Review',        bg: '#eff6ff', color: '#1e40af', icon: FiClock },
+  shortlisted:         { text: 'Shortlisted',         bg: '#f0fdf4', color: '#15803d', icon: FiCheckCircle },
+  interview_scheduled: { text: 'Interview Scheduled', bg: '#f0f9ff', color: '#0369a1', icon: FiCalendar },
+  rejected:            { text: 'Not Selected',        bg: '#fef2f2', color: '#dc2626', icon: FiXCircle },
+  accepted:            { text: 'Accepted',            bg: '#f0fdf4', color: '#15803d', icon: FiCheckCircle },
 };
 
 const MyApplications = () => {
@@ -30,6 +31,13 @@ const MyApplications = () => {
       });
       if (res.success) {
         const apps = Array.isArray(res.data.data) ? [...res.data.data] : [];
+        console.log('Fetched applications:', apps); // Debug log
+        apps.forEach(app => {
+          if (app.status === 'interview_scheduled') {
+            console.log('Interview scheduled app:', app);
+            console.log('Interview data:', app.interview);
+          }
+        });
         setApplications(apps);
       } else {
         setApplications([]);
@@ -129,6 +137,57 @@ const MyApplications = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Interview Details */}
+                {(app.status === 'interview_scheduled' || app.interview) && app.interview && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                    border: '2px solid #0284c7',
+                    borderRadius: 10,
+                    padding: 16,
+                    marginBottom: 16,
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        background: '#0284c7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                        <FiCalendar size={16} color="#fff" />
+                      </div>
+                      <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0369a1' }}>Interview Scheduled</h4>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.68rem', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</p>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', fontWeight: 700, color: '#0c4a6e' }}>{app.interview.date || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p style={{ margin: 0, fontSize: '0.68rem', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Time</p>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', fontWeight: 700, color: '#0c4a6e' }}>{app.interview.time || 'N/A'}</p>
+                      </div>
+                      <div style={{ gridColumn: 'span 2' }}>
+                        <p style={{ margin: 0, fontSize: '0.68rem', color: '#0369a1', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Location</p>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.85rem', fontWeight: 700, color: '#0c4a6e' }}>{app.interview.location || 'N/A'}</p>
+                      </div>
+                    </div>
+                    <div style={{
+                      marginTop: 12,
+                      padding: 10,
+                      background: 'rgba(255, 255, 255, 0.7)',
+                      borderRadius: 6,
+                      fontSize: '0.72rem',
+                      color: '#0c4a6e',
+                      lineHeight: 1.5,
+                    }}>
+                      <strong>📌 Important:</strong> Please arrive 15 minutes early and bring a valid ID and copies of your credentials.
+                    </div>
+                  </div>
+                )}
 
                 {/* Documents section */}
                 <div style={{ borderTop: '1px solid #f8f5f5', paddingTop: 14 }}>
