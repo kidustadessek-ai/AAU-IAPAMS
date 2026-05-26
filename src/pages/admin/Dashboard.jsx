@@ -7,7 +7,8 @@ import {
   FiKey,
   FiLogOut,
   FiEdit2,
-  FiUpload
+  FiUpload,
+  FiCalendar
 } from 'react-icons/fi';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '../../context/authContext';
@@ -17,6 +18,7 @@ import ApplicationManagement from './application-management/ApplicationManagemen
 import EvaluationManagement from './evaluation-management/EvaluationManagement';
 import PositionManagement from '../../components/dashboard/admin/PositionManagement';
 import Evaluators from './Evaluators';
+import InterviewManagement from './interview-management/InterviewManagement';
 import { DashboardLayout } from '../../components/layout/layout';
 
 
@@ -27,6 +29,7 @@ const AdminDashboard = () => {
     { path: '/admin/dashboard', name: 'Overview', icon: <FiBriefcase /> },
     { path: '/admin/positions', name: 'Manage Positions', icon: <FiBriefcase /> },
     { path: '/admin/applications', name: 'Manage Applications', icon: <FiFileText /> },
+    { path: '/admin/interviews', name: 'Interview Management', icon: <FiCalendar /> },
     { path: '/admin/evaluators', name: 'Manage Evaluators', icon: <FiUsers /> },
     { path: '/admin/users', name: 'Manage Users', icon: <FiUser /> }
   ];
@@ -44,6 +47,7 @@ const AdminDashboard = () => {
         <Route path="positions" element={<PositionManagement />} />
         <Route path="evaluators" element={<Evaluators />} />
         <Route path="applications" element={<ApplicationManagement />} />
+        <Route path="interviews" element={<InterviewManagement />} />
         <Route path="users" element={<Users />} />
         <Route path="/" element={<Overview />} />
       </Routes>
