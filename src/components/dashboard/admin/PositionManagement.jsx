@@ -242,11 +242,36 @@ const PositionManagement = () => {
   };
 
 
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const res = await updatePosition(id, { status: newStatus });
+      if (!res.success) throw new Error('Failed to update status');
+      setPositions(prev => prev.map(p => p._id === id ? { ...p, status: newStatus } : p));
+      toast.success('Position status updated');
+      await fetchPositions(); // Refresh to get updated data
+    } catch (error) {
+      toast.error(error.message || 'Failed to update status');
+    }
+  };
+
   const fetchPositions = async () => {
     try {
       const res = await getPositions();
       if (!res.success) throw new Error(res.error.message || 'Failed to fetch positions');
-      setPositions(res.data);
+      
+      // Fetch applicant counts for each position
+      const positionsWithCounts = await Promise.all(
+        res.data.map(async (pos) => {
+          try {
+            const appRes = await getApplicationsByPosition(pos._id);
+            return { ...pos, applicants: appRes.success ? appRes.data.length : 0 };
+          } catch {
+            return { ...pos, applicants: 0 };
+          }
+        })
+      );
+      
+      setPositions(positionsWithCounts);
     } catch (error) {
       toast.error(error.message || 'Failed to fetch positions');
     }
@@ -426,12 +451,30 @@ const PositionManagement = () => {
                   }}>
                     {pos.positionType}
                   </span>
-                  <span style={{
-                    fontSize: '0.62rem', fontWeight: 600, padding: '3px 8px',
-                    borderRadius: 4, background: s.bg, color: s.color,
-                  }}>
-                    {s.label}
-                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                    <span style={{
+                      fontSize: '0.62rem', fontWeight: 600, padding: '3px 8px',
+                      borderRadius: 4, background: s.bg, color: s.color,
+                    }}>
+                      {s.label}
+                    </span>
+                    <select
+                      value={pos.status}
+                      onChange={(e) => { e.stopPropagation(); handleStatusChange(pos._id, e.target.value); }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        padding: '3px 6px', borderRadius: 4,
+                        border: '1px solid #e2e8f0',
+                        fontSize: '0.65rem', cursor: 'pointer',
+                        background: '#fff', color: '#374151',
+                        outline: 'none',
+                      }}
+                    >
+                      <option value="open">Open</option>
+                      <option value="closed">Closed</option>
+                      <option value="draft">Draft</option>
+                    </select>
+                  </div>
                 </div>
 
                 {/* Title */}
@@ -1208,13 +1251,26 @@ const PositionManagement = () => {
                           >
                             <td style={{ padding: '12px 20px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                <div style={{
-                                  width: 32, height: 32, borderRadius: 8, background: '#7B1113',
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  fontSize: '0.75rem', fontWeight: 700, color: '#fff',
-                                }}>
-                                  {(app.applicant?.fullName || app.applicant?.username || '?').charAt(0).toUpperCase()}
-                                </div>
+                                {app.applicant?.profilePhoto ? (
+                                  <img
+                                    src={app.applicant.profilePhoto}
+                                    alt={app.applicant?.fullName || app.applicant?.username}
+                                    style={{
+                                      width: 32,
+                                      height: 32,
+                                      borderRadius: 8,
+                                      objectFit: 'cover',
+                                    }}
+                                  />
+                                ) : (
+                                  <div style={{
+                                    width: 32, height: 32, borderRadius: 8, background: '#7B1113',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '0.75rem', fontWeight: 700, color: '#fff',
+                                  }}>
+                                    {(app.applicant?.fullName || app.applicant?.username || '?').charAt(0).toUpperCase()}
+                                  </div>
+                                )}
                                 <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a2e' }}>
                                   {app.applicant?.fullName || app.applicant?.username || 'Unknown'}
                                 </span>

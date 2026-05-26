@@ -132,6 +132,11 @@ const Positions = () => {
     status: 'open',
   });
 
+  const handleStatusChange = (id, newStatus) => {
+    setPositions(prev => prev.map(p => p.id === id ? { ...p, status: newStatus, updatedAt: new Date() } : p));
+    toast.success('Position status updated');
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const requirementsArray = newPosition.requirements
@@ -258,13 +263,30 @@ const Positions = () => {
                   <p className="text-sm text-gray-500">Deadline: {position.deadline}</p>
                   <p className="text-sm text-gray-400 text-xs">Created At: {new Date(position.createdAt).toLocaleDateString()}</p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-sm ${
-                  position.status === 'open' ? 'bg-green-100 text-green-800' :
-                  position.status === 'closed' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}>
-                  {position.status}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                  <span className={`px-2 py-1 rounded-full text-sm ${
+                    position.status === 'open' ? 'bg-green-100 text-green-800' :
+                    position.status === 'closed' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {position.status}
+                  </span>
+                  <select
+                    value={position.status}
+                    onChange={(e) => handleStatusChange(position.id, e.target.value)}
+                    style={{
+                      padding: '5px 8px', borderRadius: 6,
+                      border: '1px solid #d1d5db',
+                      fontSize: '0.75rem', cursor: 'pointer',
+                      background: '#fff', color: '#374151',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="open">Open</option>
+                    <option value="closed">Closed</option>
+                    <option value="filled">Filled</option>
+                  </select>
+                </div>
               </div>
             </li>
           ))}
