@@ -19,6 +19,7 @@ import authRoutes from './src/routes/authRoutes.js';
 import positionRoutes from './src/routes/positionRoutes.js';
 import applicationRoutes from './src/routes/applicationRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
+import smsRoutes from './src/routes/smsRoutes.js';
 
 dotenv.config();
 validateEnv();
@@ -75,6 +76,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/positions', positionRoutes);
 app.use('/api/v1/applications', applicationRoutes);
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/sms', smsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
