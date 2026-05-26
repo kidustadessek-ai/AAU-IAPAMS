@@ -26,35 +26,60 @@ export const DashboardLayout = ({
     profilePhoto: user?.profilePhoto
   });
 
+  // Update profile photo when user prop changes
+  useEffect(() => {
+    if (user?.profilePhoto) {
+      setProfilePhoto(user.profilePhoto);
+    }
+  }, [user]);
+
   // Fetch full user profile data when edit button is clicked
   const fetchUserProfile = async () => {
     try {
       setIsLoadingProfile(true);
-      const result = await getUserProfile(token);
+      const result = await getUserProfile();
+      
+      console.log('Fetched user profile:', result);
       
       if (result.success) {
         const userinfo = result.data;
+        const userData = userinfo.data || userinfo;
+        
+        console.log('User data to set:', userData);
+        
+        // Convert socialMedia Map to plain object if needed
+        let socialMedia = {};
+        if (userData.socialMedia) {
+          if (userData.socialMedia instanceof Map) {
+            socialMedia = Object.fromEntries(userData.socialMedia);
+          } else if (typeof userData.socialMedia === 'object') {
+            socialMedia = userData.socialMedia;
+          }
+        }
+        
         setUserData({
-          id: userinfo.data._id,
-          fullName: userinfo.data.fullName || '',
-          username: userinfo.data.username || '',
-          email: userinfo.data.email || '',
-          phone: userinfo.data.phone || '',
-          department: userinfo.data.department || '',
-          positionType: userinfo.data.positionType || '',
-          bio: userinfo.data.bio || '',
-          address: userinfo.data.address || '',
-          education: userinfo.data.education || [],
-          experience: userinfo.data.experience || [],
-          skills: userinfo.data.skills || [],
-          website: userinfo.data.website || '',
-          socialMedia: userinfo.data.socialMedia || {},
-          profilePhoto: userinfo.data.profilePhoto,
+          id: userData._id,
+          fullName: userData.fullName || '',
+          username: userData.username || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          department: userData.department || '',
+          positionType: userData.positionType || '',
+          bio: userData.bio || '',
+          address: userData.address || '',
+          education: userData.education || [],
+          experience: userData.experience || [],
+          skills: userData.skills || [],
+          website: userData.website || '',
+          socialMedia: socialMedia,
+          profilePhoto: userData.profilePhoto,
           profilePhotoFile: null
         });
         
-        if (userinfo.data.profilePhoto) {
-          setProfilePhoto(userinfo.data.profilePhoto);
+        console.log('Set userData state:', userData);
+        
+        if (userData.profilePhoto) {
+          setProfilePhoto(userData.profilePhoto);
         }
       }
     } catch (error) {
@@ -89,35 +114,45 @@ export const DashboardLayout = ({
   const handleSaveProfile = async (updatedData) => {
     try {
       setIsSaving(true);
-      const result = await updateUserProfile(updatedData, token);
+      
+      console.log('Saving profile with data:', updatedData);
+      console.log('Education:', updatedData.education);
+      console.log('Experience:', updatedData.experience);
+      console.log('Skills:', updatedData.skills);
+      
+      const result = await updateUserProfile(updatedData);
+      
+      console.log('Save result:', result);
       
       if (result.success) {
-        // Update local state
-        setUserData(prev => ({
-          ...updatedData,
-          profilePhotoFile: null
-        }));
+        toast.success('Profile updated successfully');
         
-        // Update profile photo state
-        if (result.data?.profilePhoto) {
-          setProfilePhoto(result.data.profilePhoto);
-        }
-
         // Update localStorage with new user data
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
           const user = JSON.parse(storedUser);
           const updatedUser = {
             ...user,
-            ...result.data
+            ...result.data,
+            education: result.data.education || [],
+            experience: result.data.experience || [],
+            skills: result.data.skills || []
           };
           localStorage.setItem('user', JSON.stringify(updatedUser));
+          console.log('Updated user in localStorage:', updatedUser);
         }
-
-        // Trigger a page reload to refresh all components with new user data
-        window.location.reload();
         
-        toast.success('Profile updated successfully');
+        // Update profile photo if changed
+        if (result.data?.profilePhoto) {
+          setProfilePhoto(result.data.profilePhoto);
+        }
+        
+        setIsEditingProfile(false);
+        
+        // Reload page after short delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         const errorMsg = result.error?.message || 'Failed to update profile';
         console.error('Update failed:', result.error);
