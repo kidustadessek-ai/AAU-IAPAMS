@@ -414,11 +414,68 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
   );
 };
 
+// Interview Invitation
+export const sendInterviewInvitation = async (application, interviewDetails) => {
+  const content = `
+    <div style="text-align:center;margin:0 0 25px">
+      <div style="display:inline-block;background:#7B1113;color:#fff;width:60px;height:60px;border-radius:50%;line-height:60px;font-size:30px;margin-bottom:15px">📅</div>
+      <h2 style="color:${AAU_BRAND.secondaryColor};margin:0;font-size:24px">Interview Invitation</h2>
+    </div>
+
+    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 15px">
+      Dear <strong>${application.applicant.fullName}</strong>,
+    </p>
+    
+    <p style="color:#555;font-size:15px;line-height:1.7;margin:0 0 20px">
+      Congratulations! You have been shortlisted for an interview for the position of <strong>${application.position.title}</strong>.
+    </p>
+
+    <div style="background:#fdf0f0;border-left:4px solid #7B1113;padding:20px;border-radius:6px;margin:20px 0">
+      <h3 style="color:#7B1113;margin:0 0 15px;font-size:18px">Interview Details</h3>
+      <table width="100%" cellpadding="8" cellspacing="0">
+        <tr>
+          <td style="color:#666;font-size:14px;font-weight:600;width:120px">Position:</td>
+          <td style="color:#333;font-size:14px">${application.position.title}</td>
+        </tr>
+        <tr>
+          <td style="color:#666;font-size:14px;font-weight:600">Date:</td>
+          <td style="color:#333;font-size:14px;font-weight:700">${interviewDetails.date}</td>
+        </tr>
+        <tr>
+          <td style="color:#666;font-size:14px;font-weight:600">Time:</td>
+          <td style="color:#333;font-size:14px;font-weight:700">${interviewDetails.time}</td>
+        </tr>
+        <tr>
+          <td style="color:#666;font-size:14px;font-weight:600">Location:</td>
+          <td style="color:#333;font-size:14px">${interviewDetails.location}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background:#eff6ff;border:1px solid #3b82f6;border-radius:8px;padding:15px;margin:20px 0">
+      <p style="color:#1e40af;font-size:14px;margin:0;line-height:1.6">
+        <strong>Important:</strong> Please arrive 15 minutes early and bring a valid ID and copies of your credentials.
+      </p>
+    </div>
+
+    <p style="color:#555;font-size:14px;line-height:1.7;margin:20px 0 0">
+      We look forward to meeting you. Good luck!
+    </p>
+  `;
+
+  return sendEmail(
+    application.applicant.email,
+    `Interview Invitation: ${application.position.title}`,
+    getEmailTemplate('Interview Invitation', content, 'View Details', `${process.env.FRONTEND_URL}/staff/applications`)
+  );
+};
+
 export default {
   sendLoginNotification,
   sendApplicationStatusUpdate,
   sendEvaluatorAssignment,
   sendAdminNewApplicationNotification,
   sendWelcomeEmail,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  sendInterviewInvitation
 };
