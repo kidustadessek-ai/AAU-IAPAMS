@@ -37,8 +37,8 @@ const positionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['open', 'closed', 'filled'],
-      default: 'open',
+      enum: ['draft', 'open', 'closed', 'filled'],
+      default: 'draft',
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
