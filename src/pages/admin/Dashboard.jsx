@@ -16,6 +16,7 @@ import Users from './users/manage-users';
 import ApplicationManagement from './application-management/ApplicationManagement';
 import EvaluationManagement from './evaluation-management/EvaluationManagement';
 import PositionManagement from '../../components/dashboard/admin/PositionManagement';
+import Evaluators from './Evaluators';
 import { DashboardLayout } from '../../components/layout/layout';
 
 
@@ -27,7 +28,6 @@ const AdminDashboard = () => {
     { path: '/admin/positions', name: 'Manage Positions', icon: <FiBriefcase /> },
     { path: '/admin/applications', name: 'Manage Applications', icon: <FiFileText /> },
     { path: '/admin/evaluators', name: 'Manage Evaluators', icon: <FiUsers /> },
-
     { path: '/admin/users', name: 'Manage Users', icon: <FiUser /> }
   ];
 
@@ -42,7 +42,7 @@ const AdminDashboard = () => {
       <Routes>
         <Route path="dashboard" element={<Overview />} />
         <Route path="positions" element={<PositionManagement />} />
-        <Route path="evaluators" element={<EvaluationManagement />} />
+        <Route path="evaluators" element={<Evaluators />} />
         <Route path="applications" element={<ApplicationManagement />} />
         <Route path="users" element={<Users />} />
         <Route path="/" element={<Overview />} />

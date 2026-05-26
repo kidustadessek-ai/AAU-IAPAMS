@@ -19,7 +19,7 @@ const StaffHome = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [auth]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -29,10 +29,18 @@ const StaffHome = () => {
         getMyApplications(),
         getPositions()
       ]);
-      if (userRes.success) setUser(userRes.data.data);
+      
+      console.log('User profile response:', userRes);
+      
+      if (userRes.success && userRes.data) {
+        const userData = userRes.data.data || userRes.data;
+        console.log('Setting user data:', userData);
+        setUser(userData);
+      }
       if (appsRes.success) setApplications(Array.isArray(appsRes.data.data) ? appsRes.data.data : []);
       if (positionsRes.success) setPositions(positionsRes.data || []);
     } catch (error) {
+      console.error('Failed to load data:', error);
       toast.error('Failed to load data');
     } finally {
       setIsLoading(false);
@@ -43,9 +51,39 @@ const StaffHome = () => {
   const stats = getApplicationStats();
 
   function calculateCompleteness(user) {
-    const fields = ['fullName', 'email', 'phone', 'profilePhoto', 'education', 'experience', 'skills'];
-    const filled = fields.filter(f => user[f] && (Array.isArray(user[f]) ? user[f].length > 0 : true));
-    return Math.round((filled.length / fields.length) * 100);
+    if (!user) return 0;
+    
+    const fields = [
+      { key: 'fullName', weight: 1 },
+      { key: 'email', weight: 1 },
+      { key: 'phone', weight: 1 },
+      { key: 'profilePhoto', weight: 1 },
+      { key: 'education', weight: 2 },
+      { key: 'experience', weight: 2 },
+      { key: 'skills', weight: 1 },
+      { key: 'bio', weight: 0.5 },
+      { key: 'department', weight: 0.5 }
+    ];
+    
+    const totalWeight = fields.reduce((sum, f) => sum + f.weight, 0);
+    let filledWeight = 0;
+    
+    fields.forEach(f => {
+      const value = user[f.key];
+      const isFilled = value && (Array.isArray(value) ? value.length > 0 : String(value).trim() !== '');
+      if (isFilled) {
+        filledWeight += f.weight;
+        console.log(`Field ${f.key} is filled, adding weight ${f.weight}`);
+      } else {
+        console.log(`Field ${f.key} is empty`);
+      }
+    });
+    
+    const percentage = Math.round((filledWeight / totalWeight) * 100);
+    console.log(`Profile completeness: ${filledWeight}/${totalWeight} = ${percentage}%`);
+    console.log('User data:', user);
+    
+    return percentage;
   }
 
   function getApplicationStats() {

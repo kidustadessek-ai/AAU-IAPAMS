@@ -33,6 +33,7 @@ const AvailablePositions = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState({ cv: null, coverLetter: null, certificates: [] });
+  const [description, setDescription] = useState('');
   const [previewDoc, setPreviewDoc] = useState(null);
 
   const colleges = getColleges();
@@ -73,6 +74,7 @@ const AvailablePositions = () => {
 
   const handleApply = async () => {
     if (!files.cv) { toast.error('CV is required'); return; }
+    if (description.length > 1000) { toast.error('Description cannot exceed 1000 characters'); return; }
     setIsSubmitting(true);
     try {
       const formData = new FormData();
@@ -80,18 +82,20 @@ const AvailablePositions = () => {
       formData.append('cv', files.cv);
       if (files.coverLetter) formData.append('coverLetter', files.coverLetter);
       files.certificates.forEach(c => formData.append('certificates', c));
+      if (description.trim()) formData.append('description', description.trim());
       const res = await applyToPosition(formData);
       if (res.success) {
         toast.success('Application submitted successfully!');
         setSelected(null);
         setFiles({ cv: null, coverLetter: null, certificates: [] });
+        setDescription('');
         fetchData();
       }
     } catch (e) { toast.error(e.message || 'Failed to submit'); }
     finally { setIsSubmitting(false); }
   };
 
-  const closeDialog = () => { setSelected(null); setFiles({ cv: null, coverLetter: null, certificates: [] }); };
+  const closeDialog = () => { setSelected(null); setFiles({ cv: null, coverLetter: null, certificates: [] }); setDescription(''); };
 
   const Shimmer = () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }}>
@@ -345,6 +349,27 @@ const AvailablePositions = () => {
                         </div>
                       );
                     })}
+                  </div>
+                  
+                  {/* Description field */}
+                  <div style={{ marginTop: 16 }}>
+                    <p style={{ margin: '0 0 6px', fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
+                      Additional Information <span style={{ color: '#94a3b8', fontWeight: 400 }}>(optional, max 1000 characters)</span>
+                    </p>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      maxLength={1000}
+                      placeholder="Add any additional information about your application..."
+                      style={{
+                        width: '100%', padding: '10px 12px', borderRadius: 8,
+                        border: '1px solid #e2e8f0', fontSize: '0.8rem', outline: 'none',
+                        resize: 'vertical', minHeight: 80, fontFamily: 'inherit',
+                      }}
+                    />
+                    <p style={{ margin: '4px 0 0', fontSize: '0.68rem', color: '#94a3b8', textAlign: 'right' }}>
+                      {description.length}/1000 characters
+                    </p>
                   </div>
                 </div>
               )}
