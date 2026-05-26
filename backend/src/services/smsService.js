@@ -9,7 +9,8 @@ const SMS_ENABLED = process.env.SMS_ENABLED === 'true';
 class SMSService {
   async sendSMS(phoneNumber, message) {
     if (!SMS_ENABLED) {
-      console.log('SMS disabled. Message:', message);
+      console.log('SMS disabled. Would send to:', phoneNumber);
+      console.log('Message:', message);
       return { success: true, message: 'SMS disabled' };
     }
 
@@ -52,9 +53,27 @@ class SMSService {
     return this.sendSMS(phoneNumber, message);
   }
 
-  async sendInterviewNotification(phoneNumber, candidateName, positionTitle, interviewDate, interviewTime) {
-    const message = `Dear ${candidateName}, you are invited for an interview for ${positionTitle} on ${interviewDate} at ${interviewTime}. View details: ${process.env.FRONTEND_URL || 'https://AAU-IAPAMS.com'}. AAU-IAPAMS`;
+  async sendInterviewNotification(phoneNumber, candidateName, positionTitle, interviewDate, interviewTime, interviewLocation) {
+    const message = `Dear ${candidateName}, you are invited for an interview for ${positionTitle} on ${interviewDate} at ${interviewTime}, Location: ${interviewLocation}. View details: ${process.env.FRONTEND_URL || 'http://localhost:5173'}/staff/applications - AAU-IAPAMS`;
     return this.sendSMS(phoneNumber, message);
+  }
+
+  async sendBulkInterviewNotifications(applications, interviewDetails) {
+    const results = [];
+    for (const app of applications) {
+      if (app.applicant?.phone) {
+        const result = await this.sendInterviewNotification(
+          app.applicant.phone,
+          app.applicant.fullName,
+          app.position.title,
+          interviewDetails.date,
+          interviewDetails.time,
+          interviewDetails.location
+        );
+        results.push({ applicationId: app._id, ...result });
+      }
+    }
+    return results;
   }
 }
 
