@@ -1,10 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { getUserProfile, updateUserProfile } from '../../services/userService';
 import toast from 'react-hot-toast';
 import ProfileEditModal from './profileEditModal';
+import { useAuth } from '../../context/authContext';
+
+export const LayoutContext = createContext(null);
+export const useLayout = () => useContext(LayoutContext);
 
 export const DashboardLayout = ({ 
   title, 
@@ -14,8 +18,14 @@ export const DashboardLayout = ({
   onLogout,
   token
 }) => {
+  const { updateUser } = useAuth();
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  
+  useEffect(() => {
+    console.log('⚡ isEditingProfile changed to:', isEditingProfile);
+  }, [isEditingProfile]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [userData, setUserData] = useState({
@@ -90,6 +100,13 @@ export const DashboardLayout = ({
     }
   };
 
+  const handleCloseModal = useCallback(() => {
+    if (!isSaving) {
+      console.log('🚪 handleCloseModal called');
+      setIsEditingProfile(false);
+    }
+  }, [isSaving]);
+
   const handleEditProfile = async () => {
     await fetchUserProfile();
     setIsEditingProfile(true);
@@ -126,33 +143,20 @@ export const DashboardLayout = ({
       
       if (result.success) {
         toast.success('Profile updated successfully');
-        
-        // Update localStorage with new user data
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          const user = JSON.parse(storedUser);
-          const updatedUser = {
-            ...user,
-            ...result.data,
-            education: result.data.education || [],
-            experience: result.data.experience || [],
-            skills: result.data.skills || []
-          };
-          localStorage.setItem('user', JSON.stringify(updatedUser));
-          console.log('Updated user in localStorage:', updatedUser);
-        }
-        
-        // Update profile photo if changed
+
+        updateUser({
+          ...result.data,
+          education: result.data.education || [],
+          experience: result.data.experience || [],
+          skills: result.data.skills || []
+        });
+
         if (result.data?.profilePhoto) {
           setProfilePhoto(result.data.profilePhoto);
         }
-        
+
         setIsEditingProfile(false);
-        
-        // Reload page after short delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        setProfileRefreshKey(k => k + 1);
       } else {
         const errorMsg = result.error?.message || 'Failed to update profile';
         console.error('Update failed:', result.error);
@@ -167,6 +171,7 @@ export const DashboardLayout = ({
   };
 
   return (
+    <LayoutContext.Provider value={{ openEditProfile: handleEditProfile, profileRefreshKey }}>
     <div className="min-h-screen flex" style={{ backgroundColor: '#f5f4f2' }}>
 
       {/* Fixed Sidebar — full height, dark, starts at top-0 since header doesn't overlap it */}
@@ -198,7 +203,7 @@ export const DashboardLayout = ({
 
         <ProfileEditModal
           isOpen={isEditingProfile}
-          onClose={() => !isSaving && setIsEditingProfile(false)}
+          onClose={handleCloseModal}
           profilePhoto={profilePhoto}
           userData={userData}
           onFileChange={handleFileChange}
@@ -225,5 +230,6 @@ export const DashboardLayout = ({
         </main>
       </div>
     </div>
+    </LayoutContext.Provider>
   );
 };

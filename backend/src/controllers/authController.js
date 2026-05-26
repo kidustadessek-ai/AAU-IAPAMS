@@ -114,18 +114,33 @@ export const login = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
+    // Convert socialMedia Map to plain object
+    const userObj = user.toObject();
+    if (userObj.socialMedia instanceof Map) {
+      userObj.socialMedia = Object.fromEntries(userObj.socialMedia);
+    }
+
     res.json({
       success: true,
       message: 'Login successful',
       data: {
         user: {
-          _id: user._id,
-          username: user.username,
-          email: user.email,
-          fullName: user.fullName,
-          role: user.role,
-          department: user.department,
-          profilePhoto: user.profilePhoto,
+          _id: userObj._id,
+          username: userObj.username,
+          email: userObj.email,
+          fullName: userObj.fullName,
+          role: userObj.role,
+          department: userObj.department,
+          phone: userObj.phone || '',
+          profilePhoto: userObj.profilePhoto || '',
+          bio: userObj.bio || '',
+          address: userObj.address || '',
+          website: userObj.website || '',
+          positionType: userObj.positionType || '',
+          education: userObj.education || [],
+          experience: userObj.experience || [],
+          skills: userObj.skills || [],
+          socialMedia: userObj.socialMedia || {},
         },
         tokens: {
           accessToken,
@@ -419,17 +434,22 @@ export const updateUser = async (req, res) => {
 
     // Parse JSON strings for complex fields
     ['education', 'experience', 'skills'].forEach(field => {
+      console.log(`Processing field ${field}:`, updates[field], typeof updates[field]);
       if (updates[field]) {
         if (typeof updates[field] === 'string') {
           try {
             updates[field] = JSON.parse(updates[field]);
+            console.log(`Parsed ${field}:`, updates[field]);
           } catch (e) {
             console.error(`Failed to parse ${field}:`, e);
             updates[field] = [];
           }
         } else if (!Array.isArray(updates[field])) {
+          console.log(`${field} is not array, setting to empty`);
           updates[field] = [];
         }
+      } else {
+        console.log(`${field} is falsy, skipping`);
       }
     });
 

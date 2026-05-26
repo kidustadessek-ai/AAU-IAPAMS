@@ -85,17 +85,17 @@ export const updateUserProfile = async (data) => {
 
     // Handle education array
     const education = Array.isArray(data.education) ? data.education : [];
-    console.log('Appending education:', education);
+    console.log('=== FRONTEND: Appending education:', JSON.stringify(education, null, 2));
     formData.append('education', JSON.stringify(education));
 
     // Handle experience array
     const experience = Array.isArray(data.experience) ? data.experience : [];
-    console.log('Appending experience:', experience);
+    console.log('=== FRONTEND: Appending experience:', JSON.stringify(experience, null, 2));
     formData.append('experience', JSON.stringify(experience));
 
     // Handle skills array
     const skills = Array.isArray(data.skills) ? data.skills : [];
-    console.log('Appending skills:', skills);
+    console.log('=== FRONTEND: Appending skills:', JSON.stringify(skills, null, 2));
     formData.append('skills', JSON.stringify(skills));
 
     // Only append profilePhoto if there's actually a file

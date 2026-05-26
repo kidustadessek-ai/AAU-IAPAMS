@@ -9,21 +9,19 @@ const ProfileEditModal = ({
   onClose,
   profilePhoto,
   userData: initialUserData,
-
   onFileChange,
   onSave,
   isSaving,
   isLoading
 }) => {
   const [activeTab, setActiveTab] = useState('basic');
-  const [userData, setUserData] = useState(
-    {...initialUserData,
-      education: initialUserData.education || [],
-  experience: initialUserData.experience || [],
-  skills: initialUserData.skills || [],
-  socialMedia: initialUserData.socialMedia || {}
-    }
-  );
+  const [userData, setUserData] = useState({
+    ...initialUserData,
+    education: initialUserData.education || [],
+    experience: initialUserData.experience || [],
+    skills: initialUserData.skills || [],
+    socialMedia: initialUserData.socialMedia || {}
+  });
 
   const [newEducation, setNewEducation] = useState({
     institution: '',
@@ -46,15 +44,18 @@ const ProfileEditModal = ({
     level: 'beginner'
   });
 
+  // Only reset userData when modal opens
   useEffect(() => {
-    setUserData({
-      ...initialUserData,
-      education: initialUserData.education || [],
-      experience: initialUserData.experience || [],
-      skills: initialUserData.skills || [],
-      socialMedia: initialUserData.socialMedia || {}
-    });
-  }, [initialUserData]);
+    if (isOpen) {
+      setUserData({
+        ...initialUserData,
+        education: initialUserData.education || [],
+        experience: initialUserData.experience || [],
+        skills: initialUserData.skills || [],
+        socialMedia: initialUserData.socialMedia || {}
+      });
+    }
+  }, [isOpen, initialUserData.id]);
   const handleAddEducation = () => {
     if (!newEducation.institution.trim()) {
       toast.error('Institution name is required');
@@ -65,6 +66,8 @@ const ProfileEditModal = ({
       ...prev,
       education: [...(prev.education || []), newEducation]
     }));
+
+    toast.success('Education added!');
 
     setNewEducation({
       institution: '',
@@ -110,9 +113,12 @@ const ProfileEditModal = ({
       return;
     }
 
+    const updatedExperience = [...(userData.experience || []), newExperience];
+    toast.success(`Experience added! Total: ${updatedExperience.length}`);
+
     setUserData(prev => ({
       ...prev,
-      experience: [...(prev.experience || []), newExperience]
+      experience: updatedExperience
     }));
 
     setNewExperience({
@@ -131,12 +137,15 @@ const ProfileEditModal = ({
       return;
     }
 
+    const updatedSkills = [...(userData.skills || []), {
+      name: newSkill.name,
+      level: newSkill.level
+    }];
+    toast.success(`Skill added! Total: ${updatedSkills.length}`);
+
     setUserData(prev => ({
       ...prev,
-      skills: [...(prev.skills || []), {
-        name: newSkill.name,
-        level: newSkill.level
-      }]
+      skills: updatedSkills
     }));
 
     setNewSkill({
@@ -236,7 +245,15 @@ const ProfileEditModal = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div style={{
+        <div 
+          onClick={(e) => {
+            // Only close if clicking the backdrop, not the modal content
+            if (e.target === e.currentTarget) {
+              alert('Backdrop clicked - closing modal');
+              onClose();
+            }
+          }}
+          style={{
           position: 'fixed',
           inset: 0,
           background: 'rgba(0,0,0,0.5)',
@@ -621,7 +638,12 @@ const ProfileEditModal = ({
                       />
                     </div>
                     <button
-                      onClick={handleAddEducation}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddEducation();
+                      }}
+                      type="button"
                       className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Education
@@ -787,7 +809,12 @@ const ProfileEditModal = ({
                       />
                     </div>
                     <button
-                      onClick={handleAddExperience}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddExperience();
+                      }}
+                      type="button"
                       className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Experience
@@ -863,7 +890,12 @@ const ProfileEditModal = ({
                       </div>
                     </div>
                     <button
-                      onClick={handleAddSkill}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddSkill();
+                      }}
+                      type="button"
                       className="flex items-center justify-center w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#7B1113] hover:bg-[#5a0d0f] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#7B1113]"
                     >
                       <FiPlus className="mr-2" /> Add Skill

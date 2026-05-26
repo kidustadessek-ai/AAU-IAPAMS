@@ -36,7 +36,13 @@ export const AuthProvider = ({ children }) => {
 
   const updateUser = (updatedUser) => {
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const newUser = { ...currentUser, ...updatedUser };
+    const newUser = {
+      ...currentUser,
+      ...updatedUser,
+      education: updatedUser.education ?? currentUser.education ?? [],
+      experience: updatedUser.experience ?? currentUser.experience ?? [],
+      skills: updatedUser.skills ?? currentUser.skills ?? [],
+    };
     localStorage.setItem('user', JSON.stringify(newUser));
     setAuth(prev => ({ ...prev, user: newUser }));
   };

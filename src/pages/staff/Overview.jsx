@@ -5,10 +5,12 @@ import { getUserProfile } from '../../services/userService';
 import { getPositions } from '../../services/positionService';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { FiBriefcase, FiFileText, FiClock, FiBell, FiArrowRight } from 'react-icons/fi';
+import { FiBriefcase, FiFileText, FiClock, FiBell, FiArrowRight, FiEdit2 } from 'react-icons/fi';
+import { useLayout } from '../../components/layout/layout';
 
 const StaffHome = () => {
   const { auth } = useAuth();
+  const layout = useLayout();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [applications, setApplications] = useState([]);
@@ -19,7 +21,7 @@ const StaffHome = () => {
 
   useEffect(() => {
     fetchData();
-  }, [auth]);
+  }, [auth, layout?.profileRefreshKey]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -52,7 +54,6 @@ const StaffHome = () => {
 
   function calculateCompleteness(user) {
     if (!user) return 0;
-    
     const fields = [
       { key: 'fullName', weight: 1 },
       { key: 'email', weight: 1 },
@@ -64,26 +65,15 @@ const StaffHome = () => {
       { key: 'bio', weight: 0.5 },
       { key: 'department', weight: 0.5 }
     ];
-    
     const totalWeight = fields.reduce((sum, f) => sum + f.weight, 0);
     let filledWeight = 0;
-    
     fields.forEach(f => {
       const value = user[f.key];
-      const isFilled = value && (Array.isArray(value) ? value.length > 0 : String(value).trim() !== '');
-      if (isFilled) {
+      if (value && (Array.isArray(value) ? value.length > 0 : String(value).trim() !== '')) {
         filledWeight += f.weight;
-        console.log(`Field ${f.key} is filled, adding weight ${f.weight}`);
-      } else {
-        console.log(`Field ${f.key} is empty`);
       }
     });
-    
-    const percentage = Math.round((filledWeight / totalWeight) * 100);
-    console.log(`Profile completeness: ${filledWeight}/${totalWeight} = ${percentage}%`);
-    console.log('User data:', user);
-    
-    return percentage;
+    return Math.round((filledWeight / totalWeight) * 100);
   }
 
   function getApplicationStats() {
@@ -210,7 +200,22 @@ const StaffHome = () => {
               Complete your profile to improve application success
             </p>
           </div>
-          <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>{completeness}%</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff' }}>{completeness}%</span>
+            {layout?.openEditProfile && (
+              <button
+                onClick={layout.openEditProfile}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 14px', borderRadius: 8,
+                  background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)',
+                  color: '#fff', fontSize: '0.78rem', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                <FiEdit2 size={13} /> Edit Profile
+              </button>
+            )}
+          </div>
         </div>
         <div style={{ width: '100%', height: 8, background: 'rgba(255,255,255,0.2)', borderRadius: 8, overflow: 'hidden' }}>
           <div style={{
