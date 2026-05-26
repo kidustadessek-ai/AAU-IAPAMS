@@ -53,8 +53,10 @@ export const createUser = async (data, token, isPublicRegistration = false) => {
 
 
 
-export const updateUserProfile = async (data, token) => {
+export const updateUserProfile = async (data) => {
   try {
+    console.log('updateUserProfile called with:', data);
+    
     const formData = new FormData();
     
     const simpleFields = [
@@ -68,6 +70,7 @@ export const updateUserProfile = async (data, token) => {
       }
     });
 
+    // Handle socialMedia
     let socialMedia = {};
     if (data.socialMedia) {
       try {
@@ -80,17 +83,20 @@ export const updateUserProfile = async (data, token) => {
     }
     formData.append('socialMedia', JSON.stringify(socialMedia));
 
-    if (data.education) {
-      formData.append('education', JSON.stringify(data.education));
-    }
+    // Handle education array
+    const education = Array.isArray(data.education) ? data.education : [];
+    console.log('Appending education:', education);
+    formData.append('education', JSON.stringify(education));
 
-    if (data.experience) {
-      formData.append('experience', JSON.stringify(data.experience));
-    }
+    // Handle experience array
+    const experience = Array.isArray(data.experience) ? data.experience : [];
+    console.log('Appending experience:', experience);
+    formData.append('experience', JSON.stringify(experience));
 
-    if (data.skills) {
-      formData.append('skills', JSON.stringify(data.skills));
-    }
+    // Handle skills array
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    console.log('Appending skills:', skills);
+    formData.append('skills', JSON.stringify(skills));
 
     // Only append profilePhoto if there's actually a file
     if (data.profilePhotoFile && data.profilePhotoFile instanceof File) {
@@ -99,10 +105,11 @@ export const updateUserProfile = async (data, token) => {
 
     const res = await api.patch(`/auth/me`, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`
+        'Content-Type': 'multipart/form-data'
       }
     });
+
+    console.log('updateUserProfile API response:', res.data);
 
     if (!res.data.success) {
       throw new Error(res.data.message || 'Update failed');
@@ -114,6 +121,7 @@ export const updateUserProfile = async (data, token) => {
       message: res.data.message
     };
   } catch (error) {
+    console.error('updateUserProfile error:', error);
     return { 
       success: false, 
       error: error.response?.data || { message: error.message || 'An unknown error occurred' } 
@@ -217,13 +225,13 @@ export const getMyApplications = async (token) => {
   }
 };
 
-export const getUserProfile = async (token) => {
+export const getUserProfile = async () => {
   try {
-    const res = await api.get('/auth/me', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const res = await api.get('/auth/me');
+    console.log('getUserProfile API response:', res.data);
     return { success: true, data: res.data };
   } catch (error) {
-    return { success: false, data: null };
+    console.error('getUserProfile error:', error);
+    return { success: false, data: null, error: error.response?.data };
   }
 };
