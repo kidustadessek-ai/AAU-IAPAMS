@@ -2,7 +2,7 @@ import Application from '../models/Application.js';
 import Position from '../models/Position.js';
 import User from '../models/User.js';
 import { uploadToCloudinary } from '../utils/upload.js';
-import { sendApplicationStatusUpdate, sendAdminNewApplicationNotification } from '../services/emailService.js';
+import { sendApplicationStatusUpdate, sendAdminNewApplicationNotification, sendInterviewInvitation } from '../services/emailService.js';
 import smsService from '../services/smsService.js';
 
 // @desc    Get all applications
@@ -403,6 +403,82 @@ export const deleteApplication = async (req, res) => {
     res.json({
       success: true,
       message: 'Application deleted successfully',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// @desc    Schedule bulk interviews
+// @route   POST /api/v1/applications/schedule-interviews
+// @access  Private/Admin
+export const scheduleInterviews = async (req, res) => {
+  try {
+    const { applicationIds, interviewDetails } = req.body;
+
+    if (!applicationIds || !Array.isArray(applicationIds) || applicationIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Application IDs are required',
+      });
+    }
+
+    if (!interviewDetails?.date || !interviewDetails?.time || !interviewDetails?.location) {
+      return res.status(400).json({
+        success: false,
+        message: 'Interview date, time, and location are required',
+      });
+    }
+
+    const applications = await Application.find({ _id: { $in: applicationIds } })
+      .populate('position', 'title')
+      .populate('applicant', 'fullName email phone');
+
+    if (applications.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No applications found',
+      });
+    }
+
+    // Update applications
+    await Application.updateMany(
+      { _id: { $in: applicationIds } },
+      {
+        status: 'interview_scheduled',
+        interview: {
+          date: interviewDetails.date,
+          time: interviewDetails.time,
+          location: interviewDetails.location,
+          scheduledAt: new Date(),
+        },
+      }
+    );
+
+    // Send notifications (non-blocking)
+    applications.forEach(app => {
+      sendInterviewInvitation(app, interviewDetails)
+        .catch(err => console.error('Email notification failed:', err));
+      
+      if (app.applicant.phone) {
+        smsService.sendInterviewNotification(
+          app.applicant.phone,
+          app.applicant.fullName,
+          app.position.title,
+          interviewDetails.date,
+          interviewDetails.time,
+          interviewDetails.location
+        ).catch(err => console.error('SMS notification failed:', err));
+      }
+    });
+
+    res.json({
+      success: true,
+      message: `Interview scheduled for ${applications.length} candidate(s)`,
+      data: { count: applications.length },
     });
   } catch (error) {
     res.status(500).json({
