@@ -6,12 +6,13 @@ import { FiSearch, FiFilter, FiChevronDown, FiEye, FiCheck, FiX, FiDownload } fr
 import DocumentPreview from '../../../components/common/DocumentPreview';
 
 const STATUS_CONFIG = {
-  pending:      { label: 'Pending',      bg: '#fefce8', color: '#a16207', dot: '#ca8a04' },
-  under_review: { label: 'Under Review', bg: '#eff6ff', color: '#1e40af', dot: '#3b82f6' },
-  shortlisted:  { label: 'Shortlisted',  bg: '#fdf0f0', color: '#7B1113', dot: '#7B1113' },
-  approved:     { label: 'Approved',     bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
-  accepted:     { label: 'Accepted',     bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
-  rejected:     { label: 'Rejected',     bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
+  pending:             { label: 'Pending',             bg: '#fefce8', color: '#a16207', dot: '#ca8a04' },
+  under_review:        { label: 'Under Review',        bg: '#eff6ff', color: '#1e40af', dot: '#3b82f6' },
+  shortlisted:         { label: 'Shortlisted',         bg: '#fdf0f0', color: '#7B1113', dot: '#7B1113' },
+  approved:            { label: 'Approved',            bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
+  accepted:            { label: 'Accepted',            bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
+  interview_scheduled: { label: 'Interview Scheduled', bg: '#f0f9ff', color: '#0369a1', dot: '#0284c7' },
+  rejected:            { label: 'Rejected',            bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
 };
 
 const StatusBadge = ({ status }) => {
@@ -198,6 +199,8 @@ const ApplicationManagement = () => {
             <option value="pending">Pending</option>
             <option value="under_review">Under Review</option>
             <option value="shortlisted">Shortlisted</option>
+            <option value="approved">Approved</option>
+            <option value="interview_scheduled">Interview Scheduled</option>
             <option value="accepted">Accepted</option>
             <option value="rejected">Rejected</option>
           </select>
@@ -422,6 +425,7 @@ const ApplicationManagement = () => {
                         <option value="under_review">Under Review</option>
                         <option value="shortlisted">Shortlisted</option>
                         <option value="approved">Approved</option>
+                        <option value="interview_scheduled">Interview Scheduled</option>
                         <option value="rejected">Rejected</option>
                       </select>
 
