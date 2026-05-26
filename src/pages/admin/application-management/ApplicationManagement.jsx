@@ -9,6 +9,7 @@ const STATUS_CONFIG = {
   pending:      { label: 'Pending',      bg: '#fefce8', color: '#a16207', dot: '#ca8a04' },
   under_review: { label: 'Under Review', bg: '#eff6ff', color: '#1e40af', dot: '#3b82f6' },
   shortlisted:  { label: 'Shortlisted',  bg: '#fdf0f0', color: '#7B1113', dot: '#7B1113' },
+  approved:     { label: 'Approved',     bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
   accepted:     { label: 'Accepted',     bg: '#f0fdf4', color: '#15803d', dot: '#16a34a' },
   rejected:     { label: 'Rejected',     bg: '#fef2f2', color: '#dc2626', dot: '#ef4444' },
 };
@@ -31,9 +32,9 @@ const StatusBadge = ({ status }) => {
 
 const SkeletonRow = () => (
   <tr>
-    {[...Array(7)].map((_, i) => (
+    {[...Array(8)].map((_, i) => (
       <td key={i} style={{ padding: '14px 16px' }}>
-        <div style={{ height: 12, borderRadius: 4, background: '#f1f5f9', width: i === 0 ? 140 : i === 6 ? 80 : 100 }} />
+        <div style={{ height: 12, borderRadius: 4, background: '#f1f5f9', width: i === 0 ? 140 : i === 7 ? 80 : 100 }} />
       </td>
     ))}
   </tr>
@@ -67,6 +68,7 @@ const ApplicationManagement = () => {
         position: app.position?.title || '—',
         college: app.position?.college || '—',
         department: app.position?.department || '—',
+        evaluators: app.position?.evaluators || [],
         date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         status: app.status,
         cv: app.documents?.cv || null,
@@ -98,13 +100,14 @@ const ApplicationManagement = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Applicant', 'Email', 'Position', 'College', 'Department', 'Applied', 'Status'];
+    const headers = ['Applicant', 'Email', 'Position', 'College', 'Department', 'Evaluators', 'Applied', 'Status'];
     const rows = filtered.map(app => [
       app.name,
       app.email,
       app.position,
       app.college,
       app.department,
+      app.evaluators?.map(e => e.fullName || e.username).join(', ') || 'None',
       app.date,
       app.status
     ]);
@@ -261,7 +264,7 @@ const ApplicationManagement = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#faf9f9', borderBottom: '2px solid #f0eded' }}>
-                {['Applicant', 'Position', 'College', 'Department', 'Applied', 'Status', 'Actions'].map(h => (
+                {['Applicant', 'Position', 'College', 'Department', 'Evaluators', 'Applied', 'Status', 'Actions'].map(h => (
                   <th key={h} style={{
                     padding: '11px 16px', textAlign: 'left',
                     fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8',
@@ -275,13 +278,13 @@ const ApplicationManagement = () => {
                 [...Array(6)].map((_, i) => <SkeletonRow key={i} />)
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     No applications found
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     No applications match your filters. <button onClick={() => setFilters({ status: 'all', college: 'all', search: '' })} style={{ color: '#7B1113', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}>Clear filters</button>
                   </td>
                 </tr>
@@ -345,6 +348,49 @@ const ApplicationManagement = () => {
                     </span>
                   </td>
 
+                  {/* Evaluators */}
+                  <td style={{ padding: '13px 16px' }}>
+                    {app.evaluators && app.evaluators.length > 0 ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div style={{ display: 'flex', marginRight: 4 }}>
+                          {app.evaluators.slice(0, 3).map((evaluator, idx) => (
+                            <div
+                              key={evaluator._id || idx}
+                              title={evaluator.fullName || evaluator.username}
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: '#7B1113',
+                                color: '#fff',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.65rem',
+                                fontWeight: 700,
+                                border: '2px solid #fff',
+                                marginLeft: idx > 0 ? -8 : 0,
+                                position: 'relative',
+                                zIndex: app.evaluators.length - idx,
+                              }}
+                            >
+                              {(evaluator.fullName || evaluator.username || 'E').charAt(0).toUpperCase()}
+                            </div>
+                          ))}
+                        </div>
+                        {app.evaluators.length > 3 && (
+                          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>
+                            +{app.evaluators.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                        No evaluators
+                      </span>
+                    )}
+                  </td>
+
                   {/* Date */}
                   <td style={{ padding: '13px 16px', whiteSpace: 'nowrap' }}>
                     <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{app.date}</span>
@@ -358,37 +404,26 @@ const ApplicationManagement = () => {
                   {/* Actions */}
                   <td style={{ padding: '13px 16px' }}>
                     <div style={{ display: 'flex', gap: 4 }}>
-                      {/* Shortlist */}
-                      <button
-                        onClick={() => handleStatus(app.id, 'shortlisted')}
-                        disabled={updatingId === app.id || app.status === 'shortlisted'}
-                        title="Shortlist"
+                      {/* Status Dropdown */}
+                      <select
+                        value={app.status}
+                        onChange={(e) => handleStatus(app.id, e.target.value)}
+                        disabled={updatingId === app.id}
                         style={{
-                          width: 28, height: 28, borderRadius: 6, border: 'none',
-                          background: app.status === 'shortlisted' ? '#f0fdf4' : '#f8f7f5',
-                          color: '#15803d', cursor: 'pointer', display: 'flex',
-                          alignItems: 'center', justifyContent: 'center',
+                          padding: '5px 8px', borderRadius: 6,
+                          border: '1px solid #ede9e9',
+                          fontSize: '0.75rem', cursor: 'pointer',
+                          background: '#fff', color: '#374151',
+                          outline: 'none',
                           opacity: updatingId === app.id ? 0.5 : 1,
                         }}
                       >
-                        <FiCheck size={13} />
-                      </button>
-
-                      {/* Reject */}
-                      <button
-                        onClick={() => handleStatus(app.id, 'rejected')}
-                        disabled={updatingId === app.id || app.status === 'rejected'}
-                        title="Reject"
-                        style={{
-                          width: 28, height: 28, borderRadius: 6, border: 'none',
-                          background: app.status === 'rejected' ? '#fef2f2' : '#f8f7f5',
-                          color: '#dc2626', cursor: 'pointer', display: 'flex',
-                          alignItems: 'center', justifyContent: 'center',
-                          opacity: updatingId === app.id ? 0.5 : 1,
-                        }}
-                      >
-                        <FiX size={13} />
-                      </button>
+                        <option value="pending">Pending</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="shortlisted">Shortlisted</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                      </select>
 
                       {/* View CV */}
                       {app.cv && (
