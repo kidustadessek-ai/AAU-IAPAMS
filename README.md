@@ -485,12 +485,12 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ![MongoDB](https://img.shields.io/badge/mongodb-%3E%3D6.0.0-green)
 
 **Current Version**: 1.0.0  
-**Last Updated**: January 2025  
+**Last Updated**: April 2026  
 **Status**: Active Development
 
 ---
 
 <div align="center">
   <p>Made with ❤️ for Addis Ababa University</p>
-  <p>© 2025 AAU-IAPAMS. All rights reserved.</p>
+  <p>© 2026 AAU-IAPAMS. All rights reserved.</p>
 </div>
