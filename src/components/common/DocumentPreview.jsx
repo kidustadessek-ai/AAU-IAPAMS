@@ -109,108 +109,23 @@ const DocumentPreview = ({ url, onClose }) => {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
     try {
-      console.log('Download URL:', url);
-      console.log('File type:', fileType);
-      
-      toast.loading('Preparing download...');
-      
-      // Extract filename first
-      const urlParts = url.split('/');
-      let filename = 'document';
-      
-      if (urlParts.length > 0) {
-        const lastPart = urlParts[urlParts.length - 1].split('?')[0];
-        if (lastPart) {
-          filename = decodeURIComponent(lastPart);
-        }
-      }
-      
-      // Ensure proper extension
-      if (!filename.includes('.')) {
-        if (fileType === 'pdf') filename += '.pdf';
-        else if (fileType === 'docx') filename += '.docx';
-        else if (fileType === 'image') filename += '.jpg';
-      }
-      
-      console.log('Filename:', filename);
-      
-      // For Cloudinary URLs, fetch as blob and download
-      if (url.includes('cloudinary.com')) {
-        // Fetch the file
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch file');
-        }
-        
-        const blob = await response.blob();
-        console.log('Blob type:', blob.type);
-        console.log('Blob size:', blob.size);
-        
-        // Create blob URL
-        const blobUrl = window.URL.createObjectURL(blob);
-        
-        // Create temporary link
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        
-        // Cleanup
-        setTimeout(() => {
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(blobUrl);
-        }, 100);
-        
-        toast.dismiss();
-        toast.success('Download started');
-        return;
-      }
-      
-      // For non-Cloudinary URLs, fetch as blob
-      const response = await fetch(url, {
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch file');
-      }
-      
-      const blob = await response.blob();
-      console.log('Blob type:', blob.type);
-      console.log('Blob size:', blob.size);
-      
-      // Create blob URL
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Create temporary link
+      // Simply open the URL in a new window with download attribute
+      // This forces the browser to download instead of opening
       const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = filename;
-      link.style.display = 'none';
+      link.href = url;
+      link.download = ''; // Empty string tells browser to use original filename
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
       document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
-      // Cleanup
-      setTimeout(() => {
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-      }, 100);
-      
-      toast.dismiss();
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
-      toast.dismiss();
-      toast.error('Download failed. Opening in new tab...');
-      
-      // Fallback: open in new tab
-      window.open(url, '_blank');
+      toast.error('Failed to download file');
     }
   };
 
