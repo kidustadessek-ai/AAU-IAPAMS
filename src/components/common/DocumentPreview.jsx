@@ -135,9 +135,14 @@ const DocumentPreview = ({ url, onClose }) => {
       const applicationId = typeof url === 'object' ? url.applicationId : null;
       const fileType = typeof url === 'object' ? url.fileType : null;
       
+      console.log('Download attempt:', { applicationId, fileType, url });
+      
       if (applicationId && fileType) {
         // Use backend download endpoint with metadata
-        const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/download?applicationId=${applicationId}&fileType=${fileType}`;
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1';
+        const downloadUrl = `${baseUrl}/download?applicationId=${applicationId}&fileType=${fileType}`;
+        
+        console.log('Download URL:', downloadUrl);
         
         // Get auth token
         const tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
@@ -156,8 +161,11 @@ const DocumentPreview = ({ url, onClose }) => {
           }
         });
         
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
+          console.error('Download error response:', errorData);
           throw new Error(errorData.message || 'Download failed');
         }
         
@@ -170,6 +178,8 @@ const DocumentPreview = ({ url, onClose }) => {
             filename = matches[1];
           }
         }
+        
+        console.log('Downloading as:', filename);
         
         // Get blob
         const blob = await response.blob();
@@ -188,6 +198,7 @@ const DocumentPreview = ({ url, onClose }) => {
         toast.success('Download started');
       } else {
         // Fallback: direct download from Cloudinary
+        console.log('Using fallback direct download');
         const downloadUrl = typeof url === 'string' ? url : url.url;
         const filename = typeof url === 'object' && url.filename ? url.filename : 'document.pdf';
         
