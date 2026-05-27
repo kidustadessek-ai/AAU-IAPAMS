@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { FiLock } from 'react-icons/fi';
+import { resetPassword } from '../../services/userService';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState('');
