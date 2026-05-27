@@ -109,22 +109,62 @@ const DocumentPreview = ({ url, onClose }) => {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
     try {
-      // Simply open the URL in a new window with download attribute
-      // This forces the browser to download instead of opening
+      toast.loading('Preparing download...');
+      
+      // Use backend download endpoint
+      const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/download?url=${encodeURIComponent(url)}`;
+      
+      // Get auth token
+      const tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
+      const token = tokens?.accessToken;
+      
+      if (!token) {
+        toast.dismiss();
+        toast.error('Please login to download files');
+        return;
+      }
+      
+      // Fetch with auth
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+      
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'document';
+      if (contentDisposition) {
+        const matches = /filename="(.+)"/.exec(contentDisposition);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+      
+      // Get blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = ''; // Empty string tells browser to use original filename
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.href = blobUrl;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
       
+      toast.dismiss();
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
+      toast.dismiss();
       toast.error('Failed to download file');
     }
   };

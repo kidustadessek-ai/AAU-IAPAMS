@@ -19,12 +19,12 @@ const CARDS = [
     light: '#eff6ff',
   },
   {
-    key: 'shortlisted',
-    label: 'Shortlisted',
-    sub: 'Qualified candidates',
+    key: 'interviewScheduled',
+    label: 'Interviews Scheduled',
+    sub: 'Pending interviews',
     icon: FiCheckSquare,
-    accent: '#10b981',
-    light: '#f0fdf4',
+    accent: '#0284c7',
+    light: '#f0f9ff',
   },
   {
     key: 'evaluators',
@@ -48,10 +48,10 @@ const Skeleton = () => (
 const StatsCards = ({ stats, loading }) => {
   const d = stats;
   const values = {
-    openPositions:     d?.positions?.open ?? 0,
-    totalApplications: d?.applications?.total ?? 0,
-    shortlisted:       d?.applications?.shortlisted ?? 0,
-    evaluators:        d?.users?.byRole?.evaluator ?? 0,
+    openPositions:        d?.positions?.open ?? 0,
+    totalApplications:    d?.applications?.total ?? 0,
+    interviewScheduled:   d?.applications?.interviewScheduled ?? 0,
+    evaluators:           d?.users?.byRole?.evaluator ?? 0,
   };
 
   return (

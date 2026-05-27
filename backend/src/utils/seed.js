@@ -42,7 +42,7 @@ const seedDatabase = async () => {
 
     // Create evaluators
     const evaluator1 = await User.create({
-      username: 'evaluator1',
+      username: 'kidus',
       email: 'evaluator1@aau.edu.et',
       password: 'Evaluator@123',
       fullName: 'Dr. Abebe Kebede',

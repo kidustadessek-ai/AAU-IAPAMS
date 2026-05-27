@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { api } from '../../../../utils/api';
 
 const STATUS_STYLE = {
-  pending:      { label: 'Pending',      bg: '#fefce8', color: '#a16207' },
-  under_review: { label: 'In Review',    bg: '#eff6ff', color: '#1e40af' },
-  shortlisted:  { label: 'Shortlisted',  bg: '#f0fdf4', color: '#15803d' },
-  accepted:     { label: 'Accepted',     bg: '#f0fdf4', color: '#15803d' },
-  rejected:     { label: 'Rejected',     bg: '#fef2f2', color: '#dc2626' },
+  pending:             { label: 'Pending',             bg: '#fefce8', color: '#a16207' },
+  under_review:        { label: 'In Review',          bg: '#eff6ff', color: '#1e40af' },
+  shortlisted:         { label: 'Shortlisted',        bg: '#f0fdf4', color: '#15803d' },
+  interview_scheduled: { label: 'Interview',          bg: '#f0f9ff', color: '#0369a1' },
+  accepted:            { label: 'Accepted',           bg: '#f0fdf4', color: '#15803d' },
+  rejected:            { label: 'Rejected',           bg: '#fef2f2', color: '#dc2626' },
 };
 
 const SkeletonRow = () => (

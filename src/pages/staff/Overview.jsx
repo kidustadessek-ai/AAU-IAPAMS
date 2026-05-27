@@ -94,6 +94,8 @@ const StaffHome = () => {
     closed: { label: 'Closed', bg: '#fef2f2', color: '#dc2626' },
     pending: { label: 'Pending', bg: '#fefce8', color: '#a16207' },
     under_review: { label: 'Under Review', bg: '#eff6ff', color: '#1e40af' },
+    shortlisted: { label: 'Shortlisted', bg: '#f0fdf4', color: '#15803d' },
+    interview_scheduled: { label: 'Interview Scheduled', bg: '#f0f9ff', color: '#0369a1' },
     accepted: { label: 'Accepted', bg: '#f0fdf4', color: '#15803d' },
     rejected: { label: 'Rejected', bg: '#fef2f2', color: '#dc2626' },
   };

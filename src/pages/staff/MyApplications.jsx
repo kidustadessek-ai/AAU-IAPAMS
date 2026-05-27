@@ -31,13 +31,6 @@ const MyApplications = () => {
       });
       if (res.success) {
         const apps = Array.isArray(res.data.data) ? [...res.data.data] : [];
-        console.log('Fetched applications:', apps); // Debug log
-        apps.forEach(app => {
-          if (app.status === 'interview_scheduled') {
-            console.log('Interview scheduled app:', app);
-            console.log('Interview data:', app.interview);
-          }
-        });
         setApplications(apps);
       } else {
         setApplications([]);
