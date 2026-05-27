@@ -61,13 +61,30 @@ export const downloadFile = async (req, res) => {
 
     const { url, filename, mimetype } = fileMetadata;
 
+    console.log('File metadata:', { filename, mimetype, url: url?.substring(0, 50) });
+
     // Ensure filename has proper extension
-    let finalFilename = filename;
-    if (finalFilename && !finalFilename.includes('.')) {
+    let finalFilename = filename || 'document';
+    
+    // Check if filename already has an extension
+    if (!finalFilename.includes('.')) {
       // Add extension based on mimetype if missing
-      const ext = mimetype?.split('/')[1] || 'pdf';
+      let ext = 'pdf';
+      if (mimetype) {
+        const mimeExt = mimetype.split('/')[1];
+        // Handle common mime types
+        if (mimeExt === 'vnd.openxmlformats-officedocument.wordprocessingml.document') {
+          ext = 'docx';
+        } else if (mimeExt === 'msword') {
+          ext = 'doc';
+        } else {
+          ext = mimeExt;
+        }
+      }
       finalFilename = `${finalFilename}.${ext}`;
     }
+
+    console.log('Final filename:', finalFilename);
 
     // Fetch file from Cloudinary
     const response = await axios.get(url, {
