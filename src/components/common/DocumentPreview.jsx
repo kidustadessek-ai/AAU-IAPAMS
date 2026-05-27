@@ -111,7 +111,34 @@ const DocumentPreview = ({ url, onClose }) => {
 
   const handleDownload = async () => {
     try {
-      const response = await fetch(url);
+      toast.loading('Preparing download...');
+      
+      // For Cloudinary URLs, use direct download with fl_attachment
+      if (url.includes('cloudinary.com')) {
+        let downloadUrl = url;
+        
+        // Add fl_attachment flag if not present
+        if (!downloadUrl.includes('fl_attachment')) {
+          downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
+        }
+        
+        // Open in new tab to trigger download
+        window.open(downloadUrl, '_blank');
+        toast.dismiss();
+        toast.success('Download started');
+        return;
+      }
+      
+      // For other URLs, fetch as blob
+      const response = await fetch(url, {
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch file');
+      }
+      
       const blob = await response.blob();
       
       // Create blob URL
@@ -120,24 +147,45 @@ const DocumentPreview = ({ url, onClose }) => {
       // Create temporary link
       const link = document.createElement('a');
       link.href = blobUrl;
+      link.style.display = 'none';
       
       // Extract filename from URL
       const urlParts = url.split('/');
-      const lastPart = urlParts[urlParts.length - 1].split('?')[0];
-      const filename = lastPart ? decodeURIComponent(lastPart) : 'document';
+      let filename = 'document';
+      
+      if (urlParts.length > 0) {
+        const lastPart = urlParts[urlParts.length - 1].split('?')[0];
+        if (lastPart) {
+          filename = decodeURIComponent(lastPart);
+        }
+      }
+      
+      // Ensure proper extension
+      if (!filename.includes('.')) {
+        if (fileType === 'pdf') filename += '.pdf';
+        else if (fileType === 'docx') filename += '.docx';
+        else if (fileType === 'image') filename += '.jpg';
+      }
       
       link.download = filename;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
       
-      // Clean up blob URL
-      window.URL.revokeObjectURL(blobUrl);
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
       
+      toast.dismiss();
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
-      toast.error('Failed to download file');
+      toast.dismiss();
+      toast.error('Failed to download. Try right-click and "Save As"');
+      
+      // Fallback: open in new tab
+      window.open(url, '_blank');
     }
   };
 
