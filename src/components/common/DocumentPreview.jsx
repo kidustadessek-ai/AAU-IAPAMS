@@ -131,75 +131,76 @@ const DocumentPreview = ({ url, onClose }) => {
     try {
       toast.loading('Preparing download...');
       
-      // Extract application ID from context (you'll need to pass this as a prop)
-      // For now, we'll try to extract from URL or use a passed prop
-      const applicationId = url.applicationId; // This should be passed as prop
-      const fileType = url.fileType || 'cv'; // This should be passed as prop
+      // Check if we have applicationId and fileType
+      const applicationId = typeof url === 'object' ? url.applicationId : null;
+      const fileType = typeof url === 'object' ? url.fileType : null;
       
-      if (!applicationId) {
-        // Fallback: direct download for old data
+      if (applicationId && fileType) {
+        // Use backend download endpoint with metadata
+        const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1'}/download?applicationId=${applicationId}&fileType=${fileType}`;
+        
+        // Get auth token
+        const tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
+        const token = tokens?.accessToken;
+        
+        if (!token) {
+          toast.dismiss();
+          toast.error('Please login to download files');
+          return;
+        }
+        
+        // Fetch with auth
+        const response = await fetch(downloadUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Download failed');
+        }
+        
+        // Get filename from Content-Disposition header
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'document.pdf';
+        if (contentDisposition) {
+          const matches = /filename="(.+)"/.exec(contentDisposition);
+          if (matches && matches[1]) {
+            filename = matches[1];
+          }
+        }
+        
+        // Get blob
+        const blob = await response.blob();
+        
+        // Create download link
+        const blobUrl = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.href = typeof url === 'string' ? url : url.url;
-        link.download = '';
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+        
+        toast.dismiss();
+        toast.success('Download started');
+      } else {
+        // Fallback: direct download from Cloudinary
+        const downloadUrl = typeof url === 'string' ? url : url.url;
+        const filename = typeof url === 'object' && url.filename ? url.filename : 'document.pdf';
+        
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
         link.target = '_blank';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         toast.dismiss();
         toast.success('Download started');
-        return;
       }
-      
-      // Use backend download endpoint with metadata
-      const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/download?applicationId=${applicationId}&fileType=${fileType}`;
-      
-      // Get auth token
-      const tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
-      const token = tokens?.accessToken;
-      
-      if (!token) {
-        toast.dismiss();
-        toast.error('Please login to download files');
-        return;
-      }
-      
-      // Fetch with auth
-      const response = await fetch(downloadUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Download failed');
-      }
-      
-      // Get filename from Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      let filename = 'document';
-      if (contentDisposition) {
-        const matches = /filename="(.+)"/.exec(contentDisposition);
-        if (matches && matches[1]) {
-          filename = matches[1];
-        }
-      }
-      
-      // Get blob
-      const blob = await response.blob();
-      
-      // Create download link
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      
-      toast.dismiss();
-      toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
       toast.dismiss();

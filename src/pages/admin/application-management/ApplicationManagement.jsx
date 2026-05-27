@@ -72,7 +72,7 @@ const ApplicationManagement = () => {
         evaluators: app.position?.evaluators || [],
         date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         status: app.status,
-        cv: app.documents?.cv || null,
+        cv: app.documents?.cv ? { ...app.documents.cv, applicationId: app._id, fileType: 'cv' } : null,
       })));
     } catch (error) {
       console.error('Fetch applications error:', error);
@@ -96,8 +96,8 @@ const ApplicationManagement = () => {
     }
   };
 
-  const handleViewDoc = (docUrl) => {
-    setPreviewDoc(docUrl);
+  const handleViewDoc = (docData) => {
+    setPreviewDoc(docData);
   };
 
   const exportToCSV = () => {

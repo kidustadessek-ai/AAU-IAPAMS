@@ -61,6 +61,14 @@ export const downloadFile = async (req, res) => {
 
     const { url, filename, mimetype } = fileMetadata;
 
+    // Ensure filename has proper extension
+    let finalFilename = filename;
+    if (finalFilename && !finalFilename.includes('.')) {
+      // Add extension based on mimetype if missing
+      const ext = mimetype?.split('/')[1] || 'pdf';
+      finalFilename = `${finalFilename}.${ext}`;
+    }
+
     // Fetch file from Cloudinary
     const response = await axios.get(url, {
       responseType: 'stream',
@@ -70,7 +78,7 @@ export const downloadFile = async (req, res) => {
 
     // Set proper headers using database metadata
     res.setHeader('Content-Type', mimetype || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${finalFilename || 'document.pdf'}"`);
     
     if (response.headers['content-length']) {
       res.setHeader('Content-Length', response.headers['content-length']);
