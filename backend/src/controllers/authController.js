@@ -464,6 +464,15 @@ export const updateUser = async (req, res) => {
       }
     }
 
+    // Handle profilePhoto - if it's an object with url, extract just the url
+    if (updates.profilePhoto && typeof updates.profilePhoto === 'object') {
+      if (updates.profilePhoto.url) {
+        updates.profilePhoto = updates.profilePhoto.url;
+      } else {
+        delete updates.profilePhoto; // Remove invalid profilePhoto
+      }
+    }
+
     // Handle profile photo upload
     if (req.file) {
       console.log('File detected, uploading to Cloudinary...');
