@@ -59,9 +59,9 @@ export const getUserStats = async (req, res) => {
         },
         positions: {
           total: Object.values(posMap).reduce((a, b) => a + b, 0),
+          draft: posMap.draft || 0,
           open: posMap.open || 0,
           closed: posMap.closed || 0,
-          filled: posMap.filled || 0,
         },
         applications: {
           total: Object.values(appMap).reduce((a, b) => a + b, 0),

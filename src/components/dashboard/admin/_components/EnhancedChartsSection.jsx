@@ -17,6 +17,7 @@ const STATUS_CONFIG = [
   { key: 'pending',     label: 'Pending',      color: '#f59e0b' },
   { key: 'underReview', label: 'Under Review',  color: '#3b82f6' },
   { key: 'shortlisted', label: 'Shortlisted',   color: '#10b981' },
+  { key: 'interviewScheduled', label: 'Interview',   color: '#8b5cf6' },
   { key: 'accepted',    label: 'Accepted',      color: '#15803d' },
   { key: 'rejected',    label: 'Rejected',      color: '#ef4444' },
 ];
@@ -76,15 +77,30 @@ const StatBadge = ({ label, value, color, icon: Icon }) => (
   </div>
 );
 
-const EnhancedChartsSection = ({ stats, loading }) => {
+const EnhancedChartsSection = ({ stats, loading, dateRange = '30' }) => {
   const overTime = stats?.applications?.overTime || [];
   const appStats = stats?.applications || {};
   const positionStats = stats?.positions || {};
   const userStats = stats?.users || {};
 
+  // Filter applications based on dateRange
+  const getFilteredData = () => {
+    const days = parseInt(dateRange);
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return overTime.filter(d => {
+      const itemDate = new Date(d._id.year, d._id.month - 1);
+      return itemDate >= cutoffDate;
+    });
+  };
+
+  const filteredData = getFilteredData();
+  const displayCount = Math.min(filteredData.length, 6);
+
   // Application Trend Line Chart
-  const lineLabels = overTime.slice(-6).map(d => `${MONTHS[d._id.month - 1]} '${String(d._id.year).slice(2)}`);
-  const lineCounts = overTime.slice(-6).map(d => d.count);
+  const lineLabels = filteredData.slice(-displayCount).map(d => `${MONTHS[d._id.month - 1]} '${String(d._id.year).slice(2)}`);
+  const lineCounts = filteredData.slice(-displayCount).map(d => d.count);
 
   const lineData = {
     labels: lineLabels.length ? lineLabels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -218,23 +234,23 @@ const EnhancedChartsSection = ({ stats, loading }) => {
 
   // Position Status Bar Chart
   const positionBarData = {
-    labels: ['Open', 'Closed', 'Filled'],
+    labels: ['Draft', 'Open', 'Closed'],
     datasets: [{
       label: 'Positions',
       data: [
+        positionStats.draft || 0,
         positionStats.open || 0,
         positionStats.closed || 0,
-        positionStats.filled || 0,
       ],
       backgroundColor: [
+        'rgba(148, 163, 184, 0.8)',
         'rgba(123, 17, 19, 0.8)',
         'rgba(201, 168, 76, 0.8)',
-        'rgba(21, 128, 61, 0.8)',
       ],
       borderColor: [
+        '#94a3b8',
         '#7B1113',
         '#C9A84C',
-        '#15803d',
       ],
       borderWidth: 2,
       borderRadius: 8,
@@ -341,7 +357,12 @@ const EnhancedChartsSection = ({ stats, loading }) => {
           <SectionTitle 
             icon={FiTrendingUp}
             action={
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>Last 6 months</span>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>
+                {dateRange === '7' ? 'Last 7 days' : 
+                 dateRange === '30' ? 'Last 30 days' : 
+                 dateRange === '90' ? 'Last 3 months' : 
+                 dateRange === '180' ? 'Last 6 months' : 'Last year'}
+              </span>
             }
           >
             Applications Over Time
@@ -425,6 +446,12 @@ const EnhancedChartsSection = ({ stats, loading }) => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                 <StatBadge 
+                  label="Draft" 
+                  value={positionStats.draft || 0} 
+                  color="#94a3b8" 
+                  icon={FiClock}
+                />
+                <StatBadge 
                   label="Open" 
                   value={positionStats.open || 0} 
                   color="#7B1113" 
@@ -434,12 +461,6 @@ const EnhancedChartsSection = ({ stats, loading }) => {
                   label="Closed" 
                   value={positionStats.closed || 0} 
                   color="#C9A84C" 
-                  icon={FiClock}
-                />
-                <StatBadge 
-                  label="Filled" 
-                  value={positionStats.filled || 0} 
-                  color="#15803d" 
                   icon={FiAward}
                 />
               </div>
