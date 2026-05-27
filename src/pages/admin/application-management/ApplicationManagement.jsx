@@ -82,7 +82,7 @@ const ApplicationManagement = () => {
           department: app.position?.department || '—',
           evaluators: app.position?.evaluators || [],
           evaluationsData: evaluationsData,
-          overallScore: app.averageScore ? (app.averageScore * 10).toFixed(1) : '0.0',
+          overallScore: app.averageScore ? app.averageScore.toFixed(1) : '0.0',
           date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
           status: app.status,
           cv: app.documents?.cv ? { ...app.documents.cv, applicationId: app._id, fileType: 'cv' } : null,
