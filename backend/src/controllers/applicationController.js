@@ -152,37 +152,43 @@ export const createApplication = async (req, res) => {
       });
     }
 
-    // Helper: upload to Cloudinary with fallback
-    const uploadFile = async (buffer, folder, mimetype) => {
-      try {
-        return await uploadToCloudinary(buffer, folder, 'raw');
-      } catch (err) {
-        // Fallback: store as base64 data URL if Cloudinary fails
-        const base64 = buffer.toString('base64');
-        return `data:${mimetype};base64,${base64}`;
-      }
-    };
-
-    documents.cv = await uploadFile(
+    // Upload CV with metadata
+    documents.cv = await uploadToCloudinary(
       req.files.cv[0].buffer,
       'aau-iapams/applications/cv',
+      'raw',
+      req.files.cv[0].originalname,
       req.files.cv[0].mimetype
     );
 
+    // Upload cover letter if provided
     if (req.files.coverLetter) {
-      documents.coverLetter = await uploadFile(
+      documents.coverLetter = await uploadToCloudinary(
         req.files.coverLetter[0].buffer,
         'aau-iapams/applications/cover-letters',
+        'raw',
+        req.files.coverLetter[0].originalname,
         req.files.coverLetter[0].mimetype
       );
+    } else {
+      documents.coverLetter = { url: '', filename: '', mimetype: '' };
     }
 
+    // Upload certificates if provided
     if (req.files.certificates) {
       documents.certificates = await Promise.all(
         req.files.certificates.map(file =>
-          uploadFile(file.buffer, 'aau-iapams/applications/certificates', file.mimetype)
+          uploadToCloudinary(
+            file.buffer,
+            'aau-iapams/applications/certificates',
+            'raw',
+            file.originalname,
+            file.mimetype
+          )
         )
       );
+    } else {
+      documents.certificates = [];
     }
 
     // Create application

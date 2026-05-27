@@ -6,22 +6,30 @@ import { Readable } from 'stream';
  * @param {Buffer} fileBuffer - File buffer from multer
  * @param {String} folder - Cloudinary folder name
  * @param {String} resourceType - 'image', 'raw', 'video', 'auto'
- * @returns {Promise<String>} - Cloudinary URL
+ * @param {String} originalFilename - Original filename with extension
+ * @param {String} mimetype - File MIME type
+ * @returns {Promise<Object>} - Object containing url, filename, and mimetype
  */
-export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceType = 'auto') => {
+export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceType = 'auto', originalFilename = '', mimetype = '') => {
   return new Promise((resolve, reject) => {
     if (!fileBuffer) {
       reject(new Error('No file buffer provided'));
       return;
     }
 
+    // Extract filename without extension for public_id
+    const filenameWithoutExt = originalFilename ? originalFilename.split('.').slice(0, -1).join('.') : `file_${Date.now()}`;
+    const extension = originalFilename ? originalFilename.split('.').pop() : '';
+
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: folder,
         resource_type: resourceType,
+        public_id: filenameWithoutExt, // Preserve original filename
         allowed_formats: ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'],
-        flags: 'attachment',
+        flags: 'attachment', // Keep attachment flag
         access_mode: 'public',
+        format: extension || undefined, // Preserve extension
       },
       (error, result) => {
         if (error) {
@@ -30,9 +38,12 @@ export const uploadToCloudinary = (fileBuffer, folder = 'aau-iapams', resourceTy
         } else if (!result) {
           reject(new Error('No result from Cloudinary'));
         } else {
-          // Return URL without fl_attachment flag for viewing
-          const viewUrl = result.secure_url.replace('fl_attachment/', '').replace('fl_attachment,', '');
-          resolve(viewUrl);
+          // Return complete file metadata
+          resolve({
+            url: result.secure_url, // Keep fl_attachment in URL
+            filename: originalFilename || `${result.public_id}.${result.format}`,
+            mimetype: mimetype || 'application/octet-stream',
+          });
         }
       }
     );

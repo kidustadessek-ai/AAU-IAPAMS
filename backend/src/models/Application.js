@@ -50,17 +50,49 @@ const applicationSchema = new mongoose.Schema(
     },
     documents: {
       cv: {
-        type: String,
-        required: [true, 'CV is required'],
+        url: {
+          type: String,
+          required: [true, 'CV URL is required'],
+        },
+        filename: {
+          type: String,
+          required: [true, 'CV filename is required'],
+        },
+        mimetype: {
+          type: String,
+          required: [true, 'CV mimetype is required'],
+        },
       },
       coverLetter: {
-        type: String,
-        default: '',
+        url: {
+          type: String,
+          default: '',
+        },
+        filename: {
+          type: String,
+          default: '',
+        },
+        mimetype: {
+          type: String,
+          default: '',
+        },
       },
-      certificates: {
-        type: [String],
-        default: [],
-      },
+      certificates: [
+        {
+          url: {
+            type: String,
+            required: true,
+          },
+          filename: {
+            type: String,
+            required: true,
+          },
+          mimetype: {
+            type: String,
+            required: true,
+          },
+        },
+      ],
     },
     description: {
       type: String,

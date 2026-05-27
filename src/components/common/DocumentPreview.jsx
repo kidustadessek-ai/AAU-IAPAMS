@@ -17,12 +17,18 @@ const DocumentPreview = ({ url, onClose }) => {
   const [processedUrl, setProcessedUrl] = useState(url);
 
   useEffect(() => {
-    // Process URL to ensure it's viewable (not downloadable)
+    // Process URL - handle both old string format and new object format
     let viewUrl = url;
-    if (url.includes('cloudinary.com') && url.includes('fl_attachment')) {
-      // Remove fl_attachment flag if present
-      viewUrl = url.replace('fl_attachment/', '').replace('fl_attachment,', '');
+    
+    if (typeof url === 'object' && url.url) {
+      viewUrl = url.url;
     }
+    
+    if (typeof viewUrl === 'string' && viewUrl.includes('cloudinary.com') && viewUrl.includes('fl_attachment')) {
+      // Remove fl_attachment flag if present for viewing
+      viewUrl = viewUrl.replace('fl_attachment/', '').replace('fl_attachment,', '');
+    }
+    
     setProcessedUrl(viewUrl);
     detectFileType();
   }, [url]);
@@ -30,20 +36,32 @@ const DocumentPreview = ({ url, onClose }) => {
   const detectFileType = async () => {
     try {
       let extension = '';
+      let urlToCheck = typeof url === 'object' && url.url ? url.url : url;
       
-      // For Cloudinary URLs, extract the format from the URL structure
-      if (url.includes('cloudinary.com')) {
-        const match = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
-        if (match) {
-          extension = match[1].toLowerCase();
-        }
-      } else {
-        // Remove query parameters and get the last part
-        const urlWithoutQuery = url.split('?')[0];
-        const parts = urlWithoutQuery.split('.');
-        
+      // If we have filename in metadata, use that
+      if (typeof url === 'object' && url.filename) {
+        const parts = url.filename.split('.');
         if (parts.length > 1) {
           extension = parts[parts.length - 1].toLowerCase();
+        }
+      }
+      
+      // Fallback: extract from URL
+      if (!extension && typeof urlToCheck === 'string') {
+        // For Cloudinary URLs, extract the format from the URL structure
+        if (urlToCheck.includes('cloudinary.com')) {
+          const match = urlToCheck.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+          if (match) {
+            extension = match[1].toLowerCase();
+          }
+        } else {
+          // Remove query parameters and get the last part
+          const urlWithoutQuery = urlToCheck.split('?')[0];
+          const parts = urlWithoutQuery.split('.');
+          
+          if (parts.length > 1) {
+            extension = parts[parts.length - 1].toLowerCase();
+          }
         }
       }
       
@@ -113,8 +131,27 @@ const DocumentPreview = ({ url, onClose }) => {
     try {
       toast.loading('Preparing download...');
       
-      // Use backend download endpoint
-      const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/download?url=${encodeURIComponent(url)}`;
+      // Extract application ID from context (you'll need to pass this as a prop)
+      // For now, we'll try to extract from URL or use a passed prop
+      const applicationId = url.applicationId; // This should be passed as prop
+      const fileType = url.fileType || 'cv'; // This should be passed as prop
+      
+      if (!applicationId) {
+        // Fallback: direct download for old data
+        const link = document.createElement('a');
+        link.href = typeof url === 'string' ? url : url.url;
+        link.download = '';
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.dismiss();
+        toast.success('Download started');
+        return;
+      }
+      
+      // Use backend download endpoint with metadata
+      const downloadUrl = `${import.meta.env.VITE_API_BASE_URL}/download?applicationId=${applicationId}&fileType=${fileType}`;
       
       // Get auth token
       const tokens = JSON.parse(localStorage.getItem('tokens') || '{}');
@@ -134,7 +171,8 @@ const DocumentPreview = ({ url, onClose }) => {
       });
       
       if (!response.ok) {
-        throw new Error('Download failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Download failed');
       }
       
       // Get filename from Content-Disposition header
@@ -165,7 +203,7 @@ const DocumentPreview = ({ url, onClose }) => {
     } catch (error) {
       console.error('Download error:', error);
       toast.dismiss();
-      toast.error('Failed to download file');
+      toast.error(error.message || 'Failed to download file');
     }
   };
 
