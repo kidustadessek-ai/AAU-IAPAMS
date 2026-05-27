@@ -45,6 +45,26 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+// Optional authentication - doesn't fail if no token
+export const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const decoded = verifyAccessToken(token);
+      const user = await User.findById(decoded.userId).select('-password');
+      
+      if (user && user.status === 'active') {
+        req.user = user;
+      }
+    }
+  } catch (error) {
+    // Silently fail - user remains undefined
+  }
+  next();
+};
+
 export const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {

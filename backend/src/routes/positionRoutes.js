@@ -7,12 +7,12 @@ import {
   closePosition,
   deletePosition,
 } from '../controllers/positionController.js';
-import { authenticate, authorize } from '../middleware/auth.js';
+import { authenticate, authorize, optionalAuthenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getPositions);
+// Public routes with optional auth to filter drafts
+router.get('/', optionalAuthenticate, getPositions);
 router.get('/:id', getPosition);
 
 // Protected routes - Admin only

@@ -12,6 +12,11 @@ export const getPositions = async (req, res) => {
 
     const query = {};
 
+    // Hide draft positions from non-admin users
+    if (!req.user || req.user.role !== 'admin') {
+      query.status = { $ne: 'draft' };
+    }
+
     if (status) query.status = status;
     if (department) query.department = department;
     if (search) {
