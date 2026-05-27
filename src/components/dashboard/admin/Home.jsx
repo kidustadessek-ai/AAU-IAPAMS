@@ -144,7 +144,7 @@ const Overview = () => {
       <StatsCards stats={stats} loading={loading} />
 
       {/* Enhanced Charts Section */}
-      <EnhancedChartsSection stats={stats} loading={loading} />
+      <EnhancedChartsSection stats={stats} loading={loading} dateRange={dateRange} />
 
       {/* Bottom row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 20, marginTop: 20 }}>

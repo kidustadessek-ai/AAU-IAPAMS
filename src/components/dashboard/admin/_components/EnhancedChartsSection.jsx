@@ -361,7 +361,8 @@ const EnhancedChartsSection = ({ stats, loading, dateRange = '30' }) => {
                 {dateRange === '7' ? 'Last 7 days' : 
                  dateRange === '30' ? 'Last 30 days' : 
                  dateRange === '90' ? 'Last 3 months' : 
-                 dateRange === '180' ? 'Last 6 months' : 'Last year'}
+                 dateRange === '180' ? 'Last 6 months' : 
+                 dateRange === '365' ? 'Last year' : 'Last 30 days'}
               </span>
             }
           >
