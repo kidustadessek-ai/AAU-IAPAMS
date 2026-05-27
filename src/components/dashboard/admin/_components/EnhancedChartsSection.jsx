@@ -85,18 +85,33 @@ const EnhancedChartsSection = ({ stats, loading, dateRange = '30' }) => {
 
   // Filter applications based on dateRange
   const getFilteredData = () => {
+    if (!overTime || overTime.length === 0) return [];
+    
     const days = parseInt(dateRange);
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
+    cutoffDate.setHours(0, 0, 0, 0); // Reset to start of day
     
     return overTime.filter(d => {
-      const itemDate = new Date(d._id.year, d._id.month - 1);
+      // Create date from the data (first day of the month)
+      const itemDate = new Date(d._id.year, d._id.month - 1, 1);
       return itemDate >= cutoffDate;
     });
   };
 
   const filteredData = getFilteredData();
-  const displayCount = Math.min(filteredData.length, 6);
+  
+  // Determine how many data points to show based on date range
+  const getDisplayCount = () => {
+    const days = parseInt(dateRange);
+    if (days <= 7) return Math.min(filteredData.length, 7);  // Show all for 7 days
+    if (days <= 30) return Math.min(filteredData.length, 6); // Show last 6 months
+    if (days <= 90) return Math.min(filteredData.length, 6); // Show last 6 months
+    if (days <= 180) return Math.min(filteredData.length, 6); // Show last 6 months
+    return Math.min(filteredData.length, 12); // Show last 12 months for year
+  };
+  
+  const displayCount = getDisplayCount();
 
   // Application Trend Line Chart
   const lineLabels = filteredData.slice(-displayCount).map(d => `${MONTHS[d._id.month - 1]} '${String(d._id.year).slice(2)}`);
@@ -369,7 +384,7 @@ const EnhancedChartsSection = ({ stats, loading, dateRange = '30' }) => {
             Applications Over Time
           </SectionTitle>
           {loading ? <ChartSkeleton height={250} /> : (
-            <div style={{ height: 250 }}>
+            <div style={{ height: 250 }} key={`line-chart-${dateRange}`}>
               <Line data={lineData} options={lineOptions} />
             </div>
           )}
