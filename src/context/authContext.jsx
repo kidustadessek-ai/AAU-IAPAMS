@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react';
-import { api } from '../utils/api';
+import { publicApi } from '../utils/api';
 
 export const AuthContext = createContext();
 
@@ -14,18 +14,21 @@ export const AuthProvider = ({ children }) => {
   });
 
   const login = async (username, password) => {
-    const res = await api.post('/auth/login', { username, password }).catch((error) => {
-      throw new Error(error.response?.data?.message || 'Network error. Please try again later.');
-    });
+    try {
+      console.log('Attempting login to:', publicApi.defaults.baseURL);
+      const res = await publicApi.post('/auth/login', { username, password });
+      const { data } = res;
+      if (!data?.success) throw new Error(data?.message || 'Login failed');
 
-    const { data } = res;
-    if (!data?.success) throw new Error(data?.message || 'Login failed');
-
-    const { user, tokens } = data.data;
-    localStorage.setItem('user', JSON.stringify(user));
-    localStorage.setItem('tokens', JSON.stringify(tokens));
-    setAuth({ user, tokens });
-    return user;
+      const { user, tokens } = data.data;
+      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('tokens', JSON.stringify(tokens));
+      setAuth({ user, tokens });
+      return user;
+    } catch (error) {
+      console.error('Login error:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Network error. Please try again later.');
+    }
   };
 
   const logout = () => {
