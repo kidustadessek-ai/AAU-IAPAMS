@@ -68,6 +68,7 @@ export const getUserStats = async (req, res) => {
           pending: appMap.pending || 0,
           underReview: appMap.under_review || 0,
           shortlisted: appMap.shortlisted || 0,
+          interviewScheduled: appMap.interview_scheduled || 0,
           rejected: appMap.rejected || 0,
           accepted: appMap.accepted || 0,
           byDepartment: applicationsByDepartment,
@@ -105,6 +106,10 @@ export const getUserDashboard = async (req, res) => {
         applicant: userId,
         status: 'shortlisted',
       });
+      const interviewScheduledApplications = await Application.countDocuments({
+        applicant: userId,
+        status: 'interview_scheduled',
+      });
 
       const recentApplications = await Application.find({ applicant: userId })
         .populate('position', 'title department deadline status')
@@ -117,6 +122,7 @@ export const getUserDashboard = async (req, res) => {
           pending: pendingApplications,
           underReview: underReviewApplications,
           shortlisted: shortlistedApplications,
+          interviewScheduled: interviewScheduledApplications,
         },
         recentApplications,
       };
