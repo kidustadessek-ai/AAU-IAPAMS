@@ -102,6 +102,7 @@ export const updateUserProfile = async (data) => {
     if (data.profilePhotoFile && data.profilePhotoFile instanceof File) {
       formData.append('profilePhoto', data.profilePhotoFile);
     }
+    // Don't send profilePhoto in body at all - let backend keep existing one
 
     const res = await api.patch(`/auth/me`, formData, {
       headers: {

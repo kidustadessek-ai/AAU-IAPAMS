@@ -132,9 +132,13 @@ export const DashboardLayout = ({
     try {
       setIsSaving(true);
       
+      // Remove profilePhoto from updatedData to avoid sending it as an object
+      // Only the file (profilePhotoFile) should be sent
+      const { profilePhoto, ...dataWithoutPhoto } = updatedData;
+      
       // Merge the file from userData state with the updated data
       const dataToSave = {
-        ...updatedData,
+        ...dataWithoutPhoto,
         profilePhotoFile: userData.profilePhotoFile
       };
       
