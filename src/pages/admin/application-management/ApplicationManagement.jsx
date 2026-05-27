@@ -33,9 +33,9 @@ const StatusBadge = ({ status }) => {
 
 const SkeletonRow = () => (
   <tr>
-    {[...Array(8)].map((_, i) => (
+    {[...Array(9)].map((_, i) => (
       <td key={i} style={{ padding: '14px 16px' }}>
-        <div style={{ height: 12, borderRadius: 4, background: '#f1f5f9', width: i === 0 ? 140 : i === 7 ? 80 : 100 }} />
+        <div style={{ height: 12, borderRadius: 4, background: '#f1f5f9', width: i === 0 ? 140 : i === 8 ? 80 : 100 }} />
       </td>
     ))}
   </tr>
@@ -61,19 +61,33 @@ const ApplicationManagement = () => {
       const res = await api.get('/applications', { params: { page, limit } });
       const apps = res.data?.data || [];
       setTotal(res.data?.meta?.total || 0);
-      setApplications(apps.map(app => ({
-        id: app._id,
-        name: app.applicant?.fullName || app.applicant?.username || 'Unknown',
-        email: app.applicant?.email || '—',
-        profilePhoto: app.applicant?.profilePhoto || null,
-        position: app.position?.title || '—',
-        college: app.position?.college || '—',
-        department: app.position?.department || '—',
-        evaluators: app.position?.evaluators || [],
-        date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: app.status,
-        cv: app.documents?.cv ? { ...app.documents.cv, applicationId: app._id, fileType: 'cv' } : null,
-      })));
+      setApplications(apps.map(app => {
+        // Calculate evaluation data
+        const evaluationsData = app.evaluations?.map(e => ({
+          name: e.evaluator?.fullName || e.evaluator?.username || 'Unknown',
+          photo: e.evaluator?.profilePhoto || null,
+          scores: e.scores || { experience: 0, education: 0, skills: 0 },
+          avgScore: e.scores ? ((e.scores.experience + e.scores.education + e.scores.skills) / 3).toFixed(1) : '0.0',
+          comments: e.comments || '',
+          submittedAt: e.submittedAt ? new Date(e.submittedAt).toLocaleDateString() : 'N/A'
+        })) || [];
+
+        return {
+          id: app._id,
+          name: app.applicant?.fullName || app.applicant?.username || 'Unknown',
+          email: app.applicant?.email || '—',
+          profilePhoto: app.applicant?.profilePhoto || null,
+          position: app.position?.title || '—',
+          college: app.position?.college || '—',
+          department: app.position?.department || '—',
+          evaluators: app.position?.evaluators || [],
+          evaluationsData: evaluationsData,
+          overallScore: app.averageScore ? (app.averageScore * 10).toFixed(1) : '0.0',
+          date: new Date(app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          status: app.status,
+          cv: app.documents?.cv ? { ...app.documents.cv, applicationId: app._id, fileType: 'cv' } : null,
+        };
+      }));
     } catch (error) {
       console.error('Fetch applications error:', error);
       setApplications([]);
@@ -101,7 +115,7 @@ const ApplicationManagement = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Applicant', 'Email', 'Position', 'College', 'Department', 'Evaluators', 'Applied', 'Status'];
+    const headers = ['Applicant', 'Email', 'Position', 'College', 'Department', 'Evaluators', 'Score', 'Applied', 'Status'];
     const rows = filtered.map(app => [
       app.name,
       app.email,
@@ -109,6 +123,7 @@ const ApplicationManagement = () => {
       app.college,
       app.department,
       app.evaluators?.map(e => e.fullName || e.username).join(', ') || 'None',
+      app.overallScore || 'N/A',
       app.date,
       app.status
     ]);
@@ -267,7 +282,7 @@ const ApplicationManagement = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#faf9f9', borderBottom: '2px solid #f0eded' }}>
-                {['Applicant', 'Position', 'College', 'Department', 'Evaluators', 'Applied', 'Status', 'Actions'].map(h => (
+                {['Applicant', 'Position', 'College', 'Department', 'Evaluators', 'Score', 'Applied', 'Status', 'Actions'].map(h => (
                   <th key={h} style={{
                     padding: '11px 16px', textAlign: 'left',
                     fontSize: '0.65rem', fontWeight: 700, color: '#94a3b8',
@@ -281,13 +296,13 @@ const ApplicationManagement = () => {
                 [...Array(6)].map((_, i) => <SkeletonRow key={i} />)
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={9} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     No applications found
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  <td colSpan={9} style={{ padding: '48px 16px', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     No applications match your filters. <button onClick={() => setFilters({ status: 'all', college: 'all', search: '' })} style={{ color: '#7B1113', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}>Clear filters</button>
                   </td>
                 </tr>
@@ -359,12 +374,12 @@ const ApplicationManagement = () => {
                           {app.evaluators.slice(0, 3).map((evaluator, idx) => (
                             <div
                               key={evaluator._id || idx}
-                              title={evaluator.fullName || evaluator.username}
+                              title={evaluator.fullName || evaluator.username || 'Evaluator'}
                               style={{
                                 width: 24,
                                 height: 24,
                                 borderRadius: '50%',
-                                background: '#7B1113',
+                                background: evaluator.profilePhoto ? 'transparent' : '#7B1113',
                                 color: '#fff',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -375,9 +390,22 @@ const ApplicationManagement = () => {
                                 marginLeft: idx > 0 ? -8 : 0,
                                 position: 'relative',
                                 zIndex: app.evaluators.length - idx,
+                                overflow: 'hidden',
                               }}
                             >
-                              {(evaluator.fullName || evaluator.username || 'E').charAt(0).toUpperCase()}
+                              {evaluator.profilePhoto ? (
+                                <img
+                                  src={evaluator.profilePhoto}
+                                  alt={evaluator.fullName || evaluator.username}
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover',
+                                  }}
+                                />
+                              ) : (
+                                (evaluator.fullName || evaluator.username || 'E').charAt(0).toUpperCase()
+                              )}
                             </div>
                           ))}
                         </div>
@@ -390,6 +418,32 @@ const ApplicationManagement = () => {
                     ) : (
                       <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
                         No evaluators
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Score */}
+                  <td style={{ padding: '13px 16px' }}>
+                    {app.evaluationsData && app.evaluationsData.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{
+                            fontSize: '0.85rem', fontWeight: 700,
+                            color: parseFloat(app.overallScore) >= 9 ? '#15803d' :
+                                   parseFloat(app.overallScore) >= 7.5 ? '#1e40af' : 
+                                   parseFloat(app.overallScore) >= 5 ? '#a16207' : '#dc2626',
+                          }}>
+                            {app.overallScore}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>/10</span>
+                        </div>
+                        <div style={{ fontSize: '0.65rem', color: '#94a3b8' }}>
+                          {app.evaluationsData.length} evaluation{app.evaluationsData.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                        Not evaluated
                       </span>
                     )}
                   </td>
