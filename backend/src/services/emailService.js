@@ -44,11 +44,11 @@ const getEmailTemplate = (title, content, ctaText = null, ctaLink = null) => `
           <!-- Header -->
           <tr>
             <td style="background:linear-gradient(135deg,${AAU_BRAND.primaryColor} 0%,#5a0d0e 100%);padding:30px 40px;text-align:center">
-              <div style="width:60px;height:60px;background:#fff;border-radius:50%;margin:0 auto 12px;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.2)">
-                <img src="${process.env.BACKEND_URL || 'https://aau-iapams.onrender.com'}/public/aau.png" alt="AAU" style="width:45px;height:45px;object-fit:contain;display:block" onerror="this.style.display='none'">
+              <div style="width:70px;height:70px;background:#fff;border-radius:50%;margin:0 auto 15px;display:inline-block;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.2)">
+                <img src="https://raw.githubusercontent.com/kidustadessek-ai/AAU-IAPAMS/main/public/aau.png" alt="AAU" style="width:100%;height:100%;object-fit:cover;display:block">
               </div>
-              <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;letter-spacing:0.3px">${AAU_BRAND.name}</h1>
-              <p style="color:rgba(255,255,255,0.85);margin:5px 0 0;font-size:12px;font-weight:500">IAPAMS</p>
+              <h1 style="color:#fff;margin:0;font-size:24px;font-weight:700">${AAU_BRAND.name}</h1>
+              <p style="color:rgba(255,255,255,0.9);margin:5px 0 0;font-size:13px">Internal Academic Position Appointment Management System</p>
             </td>
           </tr>
 
