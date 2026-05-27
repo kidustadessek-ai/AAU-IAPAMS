@@ -132,12 +132,16 @@ export const DashboardLayout = ({
     try {
       setIsSaving(true);
       
-      console.log('Saving profile with data:', updatedData);
-      console.log('Education:', updatedData.education);
-      console.log('Experience:', updatedData.experience);
-      console.log('Skills:', updatedData.skills);
+      // Merge the file from userData state with the updated data
+      const dataToSave = {
+        ...updatedData,
+        profilePhotoFile: userData.profilePhotoFile
+      };
       
-      const result = await updateUserProfile(updatedData);
+      console.log('Saving profile with data:', dataToSave);
+      console.log('Profile photo file:', dataToSave.profilePhotoFile);
+      
+      const result = await updateUserProfile(dataToSave);
       
       console.log('Save result:', result);
       
