@@ -111,45 +111,12 @@ const DocumentPreview = ({ url, onClose }) => {
 
   const handleDownload = async () => {
     try {
+      console.log('Download URL:', url);
+      console.log('File type:', fileType);
+      
       toast.loading('Preparing download...');
       
-      // For Cloudinary URLs, use direct download with fl_attachment
-      if (url.includes('cloudinary.com')) {
-        let downloadUrl = url;
-        
-        // Add fl_attachment flag if not present
-        if (!downloadUrl.includes('fl_attachment')) {
-          downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment/');
-        }
-        
-        // Open in new tab to trigger download
-        window.open(downloadUrl, '_blank');
-        toast.dismiss();
-        toast.success('Download started');
-        return;
-      }
-      
-      // For other URLs, fetch as blob
-      const response = await fetch(url, {
-        mode: 'cors',
-        credentials: 'omit'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch file');
-      }
-      
-      const blob = await response.blob();
-      
-      // Create blob URL
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Create temporary link
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.style.display = 'none';
-      
-      // Extract filename from URL
+      // Extract filename first
       const urlParts = url.split('/');
       let filename = 'document';
       
@@ -167,7 +134,56 @@ const DocumentPreview = ({ url, onClose }) => {
         else if (fileType === 'image') filename += '.jpg';
       }
       
+      console.log('Filename:', filename);
+      
+      // For Cloudinary URLs, modify URL to force download
+      if (url.includes('cloudinary.com')) {
+        let downloadUrl = url;
+        
+        // Add fl_attachment flag to force download
+        if (downloadUrl.includes('/upload/')) {
+          downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment:' + filename + '/');
+        }
+        
+        console.log('Cloudinary download URL:', downloadUrl);
+        
+        // Create hidden link and click
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.dismiss();
+        toast.success('Download started');
+        return;
+      }
+      
+      // For non-Cloudinary URLs, fetch as blob
+      const response = await fetch(url, {
+        mode: 'cors',
+        credentials: 'omit'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch file');
+      }
+      
+      const blob = await response.blob();
+      console.log('Blob type:', blob.type);
+      console.log('Blob size:', blob.size);
+      
+      // Create blob URL
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Create temporary link
+      const link = document.createElement('a');
+      link.href = blobUrl;
       link.download = filename;
+      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       
@@ -182,7 +198,7 @@ const DocumentPreview = ({ url, onClose }) => {
     } catch (error) {
       console.error('Download error:', error);
       toast.dismiss();
-      toast.error('Failed to download. Try right-click and "Save As"');
+      toast.error('Download failed. Opening in new tab...');
       
       // Fallback: open in new tab
       window.open(url, '_blank');
