@@ -372,7 +372,12 @@ const EvaluationPage = () => {
                   </h3>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr', gap: '12px 16px' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Name:</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Full Name:</span>
+                  <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500 }}>
+                    {selectedApp.applicant?.fullName || selectedApp.applicant?.username}
+                  </span>
+                  
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Username:</span>
                   <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500 }}>
                     {selectedApp.applicant?.username}
                   </span>
@@ -381,7 +386,99 @@ const EvaluationPage = () => {
                   <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500 }}>
                     {selectedApp.applicant?.email}
                   </span>
+                  
+                  {selectedApp.applicant?.phone && (
+                    <>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Phone:</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500 }}>
+                        {selectedApp.applicant.phone}
+                      </span>
+                    </>
+                  )}
+                  
+                  {selectedApp.applicant?.department && (
+                    <>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Department:</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500 }}>
+                        {selectedApp.applicant.department}
+                      </span>
+                    </>
+                  )}
+                  
+                  {selectedApp.applicant?.bio && (
+                    <>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#94a3b8' }}>Bio:</span>
+                      <span style={{ fontSize: '0.85rem', color: '#1a1a2e', fontWeight: 500, lineHeight: 1.6 }}>
+                        {selectedApp.applicant.bio}
+                      </span>
+                    </>
+                  )}
                 </div>
+                
+                {/* Education */}
+                {selectedApp.applicant?.education && selectedApp.applicant.education.length > 0 && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0eded' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a2e', margin: '0 0 10px' }}>Education</h4>
+                    {selectedApp.applicant.education.map((edu, idx) => (
+                      <div key={idx} style={{ marginBottom: 10, paddingLeft: 12, borderLeft: '2px solid #7B1113' }}>
+                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a2e', margin: '0 0 2px' }}>
+                          {edu.degree} in {edu.fieldOfStudy}
+                        </p>
+                        <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 2px' }}>
+                          {edu.institution} ({edu.startYear} - {edu.endYear})
+                        </p>
+                        {edu.description && (
+                          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0' }}>
+                            {edu.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Experience */}
+                {selectedApp.applicant?.experience && selectedApp.applicant.experience.length > 0 && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0eded' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a2e', margin: '0 0 10px' }}>Experience</h4>
+                    {selectedApp.applicant.experience.map((exp, idx) => (
+                      <div key={idx} style={{ marginBottom: 10, paddingLeft: 12, borderLeft: '2px solid #7B1113' }}>
+                        <p style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1a1a2e', margin: '0 0 2px' }}>
+                          {exp.position} at {exp.company}
+                        </p>
+                        <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: '0 0 2px' }}>
+                          {new Date(exp.startDate).toLocaleDateString()} - {exp.current ? 'Present' : new Date(exp.endDate).toLocaleDateString()}
+                        </p>
+                        {exp.description && (
+                          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '4px 0 0' }}>
+                            {exp.description}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Skills */}
+                {selectedApp.applicant?.skills && selectedApp.applicant.skills.length > 0 && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0eded' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1a1a2e', margin: '0 0 10px' }}>Skills</h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                      {selectedApp.applicant.skills.map((skill, idx) => (
+                        <span key={idx} style={{
+                          padding: '4px 12px',
+                          borderRadius: 6,
+                          background: '#fdf0f0',
+                          color: '#7B1113',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                        }}>
+                          {skill.name} ({skill.level})
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Position Information */}

@@ -111,26 +111,29 @@ const DocumentPreview = ({ url, onClose }) => {
 
   const handleDownload = async () => {
     try {
-      // Create a temporary link and trigger download
+      const response = await fetch(url);
+      const blob = await response.blob();
+      
+      // Create blob URL
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Create temporary link
       const link = document.createElement('a');
-      link.href = url;
-      link.target = '_blank';
+      link.href = blobUrl;
       
-      // For Cloudinary URLs, add download flag
-      if (url.includes('cloudinary.com')) {
-        link.href = url.replace('/upload/', '/upload/fl_attachment/');
-      }
-      
-      // Try to extract filename
+      // Extract filename from URL
       const urlParts = url.split('/');
       const lastPart = urlParts[urlParts.length - 1].split('?')[0];
-      if (lastPart) {
-        link.download = decodeURIComponent(lastPart);
-      }
+      const filename = lastPart ? decodeURIComponent(lastPart) : 'document';
       
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      
+      // Clean up blob URL
+      window.URL.revokeObjectURL(blobUrl);
+      
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error);
