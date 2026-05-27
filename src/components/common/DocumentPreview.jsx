@@ -136,26 +136,35 @@ const DocumentPreview = ({ url, onClose }) => {
       
       console.log('Filename:', filename);
       
-      // For Cloudinary URLs, modify URL to force download
+      // For Cloudinary URLs, fetch as blob and download
       if (url.includes('cloudinary.com')) {
-        let downloadUrl = url;
+        // Fetch the file
+        const response = await fetch(url);
         
-        // Add fl_attachment flag to force download
-        if (downloadUrl.includes('/upload/')) {
-          downloadUrl = downloadUrl.replace('/upload/', '/upload/fl_attachment:' + filename + '/');
+        if (!response.ok) {
+          throw new Error('Failed to fetch file');
         }
         
-        console.log('Cloudinary download URL:', downloadUrl);
+        const blob = await response.blob();
+        console.log('Blob type:', blob.type);
+        console.log('Blob size:', blob.size);
         
-        // Create hidden link and click
+        // Create blob URL
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        // Create temporary link
         const link = document.createElement('a');
-        link.href = downloadUrl;
+        link.href = blobUrl;
         link.download = filename;
-        link.target = '_blank';
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        document.body.removeChild(link);
+        
+        // Cleanup
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+        }, 100);
         
         toast.dismiss();
         toast.success('Download started');
