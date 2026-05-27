@@ -19,7 +19,7 @@ export const DashboardLayout = ({
   token
 }) => {
   const { updateUser } = useAuth();
-  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || null);
   const [profileRefreshKey, setProfileRefreshKey] = useState(0);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   
