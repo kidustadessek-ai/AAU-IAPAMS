@@ -144,16 +144,16 @@ export const DashboardLayout = ({
       if (result.success) {
         toast.success('Profile updated successfully');
 
-        updateUser({
+        const updatedUserData = {
           ...result.data,
           education: result.data.education || [],
           experience: result.data.experience || [],
-          skills: result.data.skills || []
-        });
-
-        if (result.data?.profilePhoto) {
-          setProfilePhoto(result.data.profilePhoto);
-        }
+          skills: result.data.skills || [],
+          profilePhoto: result.data.profilePhoto || user.profilePhoto
+        };
+        
+        updateUser(updatedUserData);
+        setProfilePhoto(updatedUserData.profilePhoto);
 
         setIsEditingProfile(false);
         setProfileRefreshKey(k => k + 1);
