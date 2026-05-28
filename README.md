@@ -458,12 +458,12 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ## 📞 Contact & Support
 
 ### Project Maintainers
-- **Tedros Million** - [@teddymillion](https://github.com/teddymillion)
+- **Abdisa Gezachew** - 
 - **Kidus Tadesse** - [@kidustadessek-ai](https://github.com/kidustadessek-ai)
 
 ### Support Channels
 - **Email**: support@aau-iapams.com
-- **Issues**: [GitHub Issues](https://github.com/teddymillion/AAU-IAPAMS/issues)
+- **Issues**: [GitHub Issues](https://github.com/kidustadessek-ai/AAU-IAPAMS/issues)
 - **Documentation**: [Project Wiki](https://github.com/teddymillion/AAU-IAPAMS/wiki)
 
 ---
